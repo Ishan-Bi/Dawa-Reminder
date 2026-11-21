@@ -15,12 +15,13 @@
 
 ## 2. Master Stage Tracker
 
-- [ ] **Stage 0: Pipeline and foundation**
+- [x] **Stage 0: Pipeline and foundation**
   - [x] Configure `.gitignore`, backend & frontend local environment defaults (`.env`, `.env.example`).
   - [x] Configure same-origin proxy: `vercel.json` rewrites and `vite.config.ts` dev proxy.
   - [x] Create `CONTEXT.md`.
-  - [ ] Initialize backend structure (`core/`, `models/`, `schemas/`, `routers/`, `services/`, `alembic/`).
-  - [ ] Initialize frontend `src/` minimal shell and verify `/api/health` connection.
+  - [x] Initialize backend structure (`core/`, `models/`, `schemas/`, `routers/`, `services/`, `alembic/`).
+  - [x] Initialize 5 core database tables (`users`, `patients`, `medications`, `schedules`, `dose_logs`) and Alembic migrations.
+  - [x] Initialize frontend `src/` shell (`App.tsx`, `main.tsx`, `styles/globals.css`, `lib/api.ts`) and verify TypeScript check.
 - [ ] **Stage 1: Authentication** (Caregiver register, login, logout, session cookie, layout shell)
 - [ ] **Stage 2: Patients and medicines** (Caregiver-scoped CRUD, Cloudinary upload)
 - [ ] **Stage 3: Schedules and doses** (Schedule builder, on-demand generation in Asia/Kolkata, Pytest suite)
