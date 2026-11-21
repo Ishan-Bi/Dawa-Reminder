@@ -1,5 +1,35 @@
+# Dependencies
 frontend/node_modules/
 backend/.venv/
+.venv/
+
+# Environment files (never commit secrets)
 .env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Build & runtime artifacts
+frontend/dist/
+dist/
+build/
+*.db
+*.sqlite
+*.sqlite3
+
+# Python cache & test artifacts
 __pycache__/
 *.py[cod]
+.pytest_cache/
+.coverage
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

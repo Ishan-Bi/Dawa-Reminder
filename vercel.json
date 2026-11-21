@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://dawareminder-backend.onrender.com/api/$1"
+    },
+    {
+      "source": "/health",
+      "destination": "https://dawareminder-backend.onrender.com/health"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
