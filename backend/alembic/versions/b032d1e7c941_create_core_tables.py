@@ -7,6 +7,7 @@ Create Date: 2026-11-22
 from typing import Sequence, Union
 
 from alembic import op
+from alembic.context import is_offline_mode
 import sqlalchemy as sa
 
 
@@ -17,6 +18,18 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    core_tables = {'users', 'patients', 'medications', 'schedules', 'dose_logs'}
+    if not is_offline_mode():
+        existing = core_tables.intersection(sa.inspect(op.get_bind()).get_table_names())
+        if existing == core_tables:
+            # Some development databases were initialized from model metadata
+            # before this follow-up migration was added.
+            return
+        if existing:
+            raise RuntimeError(
+                'Only some core tables exist; reconcile the database schema before migrating.'
+            )
+
     op.create_table(
         'users',
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),

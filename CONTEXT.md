@@ -37,7 +37,10 @@
 
 ## 3. Current Status and Known Issues
 - A follow-up Alembic revision creates the five MVP tables; a second revision creates revocable caregiver sessions. The original published revision remains unchanged.
-- Deployment to Vercel/Render/Neon and the live database-read acceptance check have not been confirmed.
+- Deployment acceptance is currently failing: the configured Render `/health` URL returns 404 and the configured Vercel URL returns `DEPLOYMENT_NOT_FOUND`.
+- The local `DATABASE_URL` uses SQLite. A Neon production URL and deployment credentials are not configured in this checkout; no Vercel project link or deploy CLI is available, and Docker is not running.
+- Python syntax and TypeScript checks pass. Runtime/migration execution is blocked because Windows Application Control blocks native Python modules; Vite build is blocked by the same policy on Rollup's native module.
+- No backend test files or frontend test files are present yet.
 - Expired session records are removed when used; periodic session cleanup is not configured.
 - Stage 1 needs a live deployment and a real-device login check before it can be marked complete.
 
