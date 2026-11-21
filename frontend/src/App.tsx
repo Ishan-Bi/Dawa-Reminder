@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Link, useParams } from 'react-router-dom';
+import type { FormEvent } from 'react';
+import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { apiRequest } from '@/lib/api';
 import { Activity, Heart, Shield, CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -9,6 +10,12 @@ interface HealthData {
   version: string;
   environment: string;
   database: string;
+}
+
+interface Caregiver {
+  id: number;
+  name: string;
+  email: string;
 }
 
 function HomePage() {
@@ -137,17 +144,98 @@ function HomePage() {
 }
 
 function CaregiverShell() {
+  const [user, setUser] = useState<Caregiver | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiRequest<Caregiver>('/auth/me')
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return <main className="min-h-screen grid place-items-center text-lg text-gray-600">Loading your account...</main>;
+  }
+  if (!user) return <Navigate to="/login" replace />;
+
+  const logout = async () => {
+    await apiRequest('/auth/logout', { method: 'POST' });
+    setUser(null);
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAF9] p-6 max-w-4xl mx-auto space-y-6">
       <div className="flex justify-between items-center pb-4 border-b">
-        <h1 className="text-xl font-bold text-[#167C53]">Caregiver Dashboard Shell</h1>
-        <Link to="/" className="text-xs text-gray-500 hover:underline">Back to Home</Link>
+        <div>
+          <h1 className="text-xl font-bold text-[#167C53]">Caregiver Dashboard</h1>
+          <p className="text-sm text-gray-600">Signed in as {user.name}</p>
+        </div>
+        <button onClick={logout} className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-white">Log out</button>
       </div>
       <div className="p-8 bg-white border rounded-2xl text-center space-y-2">
-        <p className="font-semibold text-gray-700">Stage 0 Ready</p>
-        <p className="text-sm text-gray-500">Authentication and patient management will be hooked in Stage 1 & 2.</p>
+        <p className="font-semibold text-gray-700">Your account is ready</p>
+        <p className="text-sm text-gray-500">Patient and medicine management are the next project stage.</p>
       </div>
     </div>
+  );
+}
+
+function AuthPage({ initialRegister = false }: { initialRegister?: boolean }) {
+  const navigate = useNavigate();
+  const [registering, setRegistering] = useState(initialRegister);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError('');
+    setSubmitting(true);
+    try {
+      await apiRequest<Caregiver>(registering ? '/auth/register' : '/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(registering ? { name, email, password } : { email, password }),
+      });
+      navigate('/app', { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : (err as { message?: string }).message || 'Could not sign in. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="min-h-screen bg-[#F8FAF9] px-5 py-10 grid place-items-center">
+      <section className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-7 shadow-sm">
+        <Link to="/" className="text-sm text-[#167C53] hover:underline">← DawaReminder</Link>
+        <h1 className="mt-5 text-2xl font-bold text-[#202824]">{registering ? 'Create caregiver account' : 'Caregiver sign in'}</h1>
+        <p className="mt-2 text-gray-600">Manage medication routines for your family.</p>
+        <form className="mt-6 space-y-4" onSubmit={submit}>
+          {registering && (
+            <label className="block text-sm font-medium text-gray-700">Your name
+              <input required autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} className="mt-1 w-full rounded-lg border px-3 py-3 text-base" />
+            </label>
+          )}
+          <label className="block text-sm font-medium text-gray-700">Email
+            <input required type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className="mt-1 w-full rounded-lg border px-3 py-3 text-base" />
+          </label>
+          <label className="block text-sm font-medium text-gray-700">Password
+            <input required type="password" minLength={10} autoComplete={registering ? 'new-password' : 'current-password'} value={password} onChange={(event) => setPassword(event.target.value)} className="mt-1 w-full rounded-lg border px-3 py-3 text-base" />
+            {registering && <span className="mt-1 block text-xs font-normal text-gray-500">Use at least 10 characters.</span>}
+          </label>
+          {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+          <button disabled={submitting} className="w-full rounded-lg bg-[#167C53] px-4 py-3 text-base font-semibold text-white hover:bg-[#0D4E34] disabled:opacity-60">
+            {submitting ? 'Please wait...' : registering ? 'Create account' : 'Sign in'}
+          </button>
+        </form>
+        <button onClick={() => { setRegistering(!registering); setError(''); }} className="mt-5 min-h-11 text-sm text-[#167C53] hover:underline">
+          {registering ? 'Already have an account? Sign in' : 'New here? Create an account'}
+        </button>
+      </section>
+    </main>
   );
 }
 
@@ -173,6 +261,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<AuthPage />} />
+        <Route path="/register" element={<AuthPage initialRegister />} />
         <Route path="/app/*" element={<CaregiverShell />} />
         <Route path="/p/:token" element={<PatientShell />} />
       </Routes>

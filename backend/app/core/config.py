@@ -3,7 +3,7 @@ Core configuration settings for DawaReminder backend.
 """
 from typing import List, Union
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 
 class Settings(BaseSettings):
@@ -31,6 +31,14 @@ class Settings(BaseSettings):
     )
     SESSION_COOKIE_NAME: str = "dawa_session"
     SESSION_MAX_AGE_SECONDS: int = 60 * 60 * 24 * 30  # 30 days
+
+    @model_validator(mode="after")
+    def require_production_session_secret(self):
+        if self.ENVIRONMENT.lower() == "production" and (
+            self.SESSION_SECRET.startswith("dev_") or len(self.SESSION_SECRET) < 32
+        ):
+            raise ValueError("Production requires a SESSION_SECRET of at least 32 characters")
+        return self
 
     # Cloudinary
     CLOUDINARY_URL: str = ""

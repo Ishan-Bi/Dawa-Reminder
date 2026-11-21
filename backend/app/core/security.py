@@ -3,6 +3,7 @@ Security and authentication utilities.
 Caregiver: password hashing & session management
 Patient: unguessable access tokens
 """
+import hashlib
 import secrets
 from passlib.context import CryptContext
 
@@ -27,3 +28,8 @@ def generate_patient_token() -> str:
 def generate_session_id() -> str:
     """Generates a secure random session token."""
     return secrets.token_urlsafe(32)
+
+
+def hash_session_id(session_id: str) -> str:
+    """Hash a session token before storing it in the database."""
+    return hashlib.sha256(session_id.encode("utf-8")).hexdigest()

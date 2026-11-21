@@ -22,3 +22,4 @@ class User(Base):
 
     # Relationships
     patients: Mapped[list["Patient"]] = relationship("Patient", back_populates="caregiver", cascade="all, delete-orphan")
+    sessions: Mapped[list["CaregiverSession"]] = relationship("CaregiverSession", back_populates="user", cascade="all, delete-orphan")
