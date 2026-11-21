@@ -39,8 +39,8 @@
 - A follow-up Alembic revision creates the five MVP tables; a second revision creates revocable caregiver sessions. The original published revision remains unchanged.
 - Deployment acceptance is currently failing: the configured Render `/health` URL returns 404 and the configured Vercel URL returns `DEPLOYMENT_NOT_FOUND`.
 - The local `DATABASE_URL` uses SQLite. A Neon production URL and deployment credentials are not configured in this checkout; no Vercel project link or deploy CLI is available, and Docker is not running.
-- Python syntax, TypeScript, backend application import, and OpenAPI route generation pass after adding SQLAlchemy's asyncio dependency. Offline Alembic SQL generation passes; applying migrations online has not completed in this runner.
-- The frontend production build is still blocked because Windows Application Control denies Rollup's native module.
+- Python syntax, TypeScript, backend application import, and OpenAPI route generation pass after adding SQLAlchemy's asyncio dependency. Local Alembic migrations have been applied through the caregiver-session revision; the backend `/health` endpoint reports the SQLite database connected.
+- Frontend uses Rollup's official WASM Node package to avoid the blocked native module. `npm run build` passes and the local Vite server responds at `http://127.0.0.1:3000/` with Smart App Control left on.
 - No backend test files or frontend test files are present yet.
 - Expired session records are removed when used; periodic session cleanup is not configured.
 - Stage 1 needs a live deployment and a real-device login check before it can be marked complete.
