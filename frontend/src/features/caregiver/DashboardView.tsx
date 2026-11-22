@@ -39,7 +39,7 @@ export function DashboardView({
     return (
       <div className="bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-sm space-y-4 max-w-xl mx-auto my-12">
         <div className="w-16 h-16 bg-[#E9F5EF] text-[#167C53] rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold">
-          द
+          DR
         </div>
         <h2 className="text-2xl font-bold text-gray-800">Welcome to DawaReminder</h2>
         <p className="text-sm text-gray-600 leading-relaxed">
@@ -249,9 +249,9 @@ export function DashboardView({
                           }
                         >
                           {dose.food_instruction === 'before_food'
-                            ? 'Before Food (खाने से पहले)'
+                            ? 'Before food'
                             : dose.food_instruction === 'after_food'
-                            ? 'After Food (खाने के बाद)'
+                            ? 'After food'
                             : 'Any Time'}
                         </Badge>
                       </div>

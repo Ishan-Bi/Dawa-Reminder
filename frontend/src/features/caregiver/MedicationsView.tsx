@@ -154,9 +154,9 @@ export function MedicationsView({ patient, onOpenAddMedication }: MedicationsVie
                           <Utensils className="w-3.5 h-3.5 text-amber-600" />
                           <span>
                             {schedule.food_instruction === 'before_food'
-                              ? 'Before Food (खाने से पहले)'
+                              ? 'Before food'
                               : schedule.food_instruction === 'after_food'
-                              ? 'After Food (खाने के बाद)'
+                              ? 'After food'
                               : 'Any Time'}
                           </span>
                         </div>

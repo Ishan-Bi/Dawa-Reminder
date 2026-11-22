@@ -46,11 +46,10 @@ function HomePage() {
         <div className="flex items-center justify-between">
           <Link to="/" aria-label="DawaReminder home" className="flex items-center space-x-3">
             <div className="w-11 h-11 rounded-2xl bg-[#167C53] flex items-center justify-center text-white font-bold text-xl shadow-sm">
-              द
+              DR
             </div>
             <div>
               <h1 className="text-xl font-bold text-[#202824]">DawaReminder</h1>
-              <p className="text-xs text-[#5C6863]">Family care, made simpler</p>
             </div>
           </Link>
           <nav aria-label="Main navigation" className="flex items-center gap-2">
@@ -87,7 +86,6 @@ function HomePage() {
                   I already have an account
                 </Link>
               </div>
-              <p className="mt-4 text-sm text-[#66756C]">Free to get started · Private caregiver sign-in</p>
             </div>
 
             <div className="relative mx-auto w-full max-w-md">
@@ -151,7 +149,7 @@ function HomePage() {
             <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
               <div className="grid h-11 w-11 place-items-center rounded-xl bg-sky-100 text-sky-800"><Activity aria-hidden="true" className="h-5 w-5" /></div>
               <h3 className="mt-4 text-lg font-bold text-gray-900">Stay in the loop</h3>
-              <p className="mt-2 text-sm leading-6 text-gray-600">Review recorded dose updates and use Hindi or English in the patient experience.</p>
+              <p className="mt-2 text-sm leading-6 text-gray-600">Review recorded dose updates in one place.</p>
             </article>
           </div>
           <Link to="/register" className="inline-flex min-h-11 items-center gap-2 rounded-xl px-1 py-2 font-bold text-[#167C53] hover:text-[#0D4E34] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#167C53]">
@@ -162,7 +160,6 @@ function HomePage() {
 
       <footer className="py-6 border-t border-gray-200 text-center text-xs text-gray-500 space-y-1">
         <p className="font-medium text-gray-600">This is a reminder tool, not medical advice.</p>
-        <p>DawaReminder &copy; 2026 — HMASS Internal College Project</p>
       </footer>
     </div>
   );
@@ -200,7 +197,7 @@ function AuthPage({ initialRegister = false }: { initialRegister?: boolean }) {
         <Link to="/" className="text-xs font-semibold text-[#167C53] hover:underline">← Home</Link>
         <div className="flex items-center gap-3 mt-4">
           <div className="w-9 h-9 rounded-xl bg-[#167C53] text-white flex items-center justify-center font-bold text-lg">
-            द
+            DR
           </div>
           <h1 className="text-2xl font-bold text-[#202824]">
             {registering ? 'Create Caregiver Account' : 'Caregiver Sign In'}

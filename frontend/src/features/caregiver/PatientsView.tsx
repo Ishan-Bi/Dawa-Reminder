@@ -102,8 +102,7 @@ export function PatientsView({
                         )}
                       </div>
                       <p className="text-xs text-gray-500">
-                        {p.age ? `${p.age} years old` : 'Age not specified'} • Language:{' '}
-                        {p.preferred_language === 'hi' ? 'हिंदी (Hindi)' : 'English'}
+                        {p.age ? `${p.age} years old` : 'Age not specified'}
                       </p>
                     </div>
                   </div>

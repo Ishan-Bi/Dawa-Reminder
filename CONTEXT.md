@@ -29,7 +29,7 @@
 - [x] **Stage 2: Patients and medicines** (Caregiver-scoped CRUD, token regeneration, patient switcher, photo upload preview)
 - [x] **Stage 3: Schedules and doses** (Schedule builder with fixed times and food instructions, on-demand Asia/Kolkata generation, Pytest test suite)
 - [x] **Stage 4: Patient experience and monitoring** (Token link & QR modal, Taken/Skipped huge buttons, voice announcement via Web Speech API, Hindi/English toggle, live caregiver monitoring)
-- [x] **Stage 5: PWA and accessibility** (Web app manifest and generated service worker, install prompt, Hindi/English toggle, disclaimer, keyboard focus visibility, reduced-motion support, and scalable browser zoom)
+- [x] **Stage 5: PWA and accessibility** (Web app manifest and generated service worker, install prompt, English-only interface per user preference, disclaimer, keyboard focus visibility, reduced-motion support, and scalable browser zoom)
 - [ ] **Stage 6: Stretch features** (Adherence weekly charts, offline queue, caregiver missed dose alerts)
 - [ ] **Stage 7: Hardening and demo preparation** (Database seed script, manual checklist, keep-awake pinger)
 
@@ -44,6 +44,7 @@
 - Backend integration tests are present; no frontend test files are present yet.
 - Frontend production build passes after Stage 5. PWA icon assets, manifest, service worker output, and browser install prompt are configured; iPhone home-screen installation still requires manual Safari verification on a real device.
 - Public landing page now leads with caregiver and patient workflows; technical backend status is available in a collapsed details panel. Production TypeScript/Vite/PWA build passes after this UI update.
+- Visible frontend copy and branding are English-only per user preference; the caregiver patient form defaults the stored language to English.
 - Expired session records are removed when used; periodic session cleanup is not configured.
 - Stage 1 needs a live deployment and a real-device login check before it can be marked complete.
 

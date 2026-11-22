@@ -19,7 +19,7 @@ export function AddMedicationModal({
 }: AddMedicationModalProps) {
   const [name, setName] = useState('');
   const [strength, setStrength] = useState('');
-  const [dosage, setDosage] = useState('1 गोली (1 tablet)');
+  const [dosage, setDosage] = useState('1 tablet');
   const [purpose, setPurpose] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [times, setTimes] = useState<string[]>(['08:00', '20:30']);
@@ -122,7 +122,7 @@ export function AddMedicationModal({
           <div className="space-y-1">
             <label className="text-xs font-bold text-gray-700">Dosage Instructions</label>
             <input
-              placeholder="e.g. 1 गोली, 2 चम्मच"
+              placeholder="e.g. 1 tablet, 2 teaspoons"
               value={dosage}
               onChange={(e) => setDosage(e.target.value)}
               className="w-full text-sm border rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-[#167C53]/30 outline-none"
@@ -197,9 +197,9 @@ export function AddMedicationModal({
           </label>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { id: 'before_food', label: 'Before Food (खाने से पहले)' },
-              { id: 'after_food', label: 'After Food (खाने के बाद)' },
-              { id: 'any', label: 'Any Time (कभी भी)' },
+              { id: 'before_food', label: 'Before food' },
+              { id: 'after_food', label: 'After food' },
+              { id: 'any', label: 'Any time' },
             ].map((opt) => (
               <button
                 type="button"

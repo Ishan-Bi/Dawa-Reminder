@@ -13,7 +13,6 @@ interface AddPatientModalProps {
 export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalProps) {
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
-  const [preferredLanguage, setPreferredLanguage] = useState<'hi' | 'en'>('hi');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -29,7 +28,7 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
         body: JSON.stringify({
           name,
           age: age ? parseInt(age, 10) : null,
-          preferred_language: preferredLanguage,
+          preferred_language: 'en',
           notes: notes || null,
         }),
       });
@@ -55,7 +54,7 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
           <label className="text-xs font-bold text-gray-700">Patient Full Name *</label>
           <input
             required
-            placeholder="e.g. Dadi Ji, Ramesh Sharma"
+            placeholder="e.g. Alex Morgan"
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full text-sm border rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-[#167C53]/30 outline-none"
@@ -74,17 +73,6 @@ export function AddPatientModal({ isOpen, onClose, onSuccess }: AddPatientModalP
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-700">Preferred Language</label>
-            <select
-              value={preferredLanguage}
-              onChange={(e) => setPreferredLanguage(e.target.value as any)}
-              className="w-full text-sm border rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-[#167C53]/30 outline-none"
-            >
-              <option value="hi">हिंदी (Hindi)</option>
-              <option value="en">English</option>
-            </select>
-          </div>
         </div>
 
         <div className="space-y-1">

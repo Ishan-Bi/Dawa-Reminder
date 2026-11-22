@@ -2,13 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Dose } from '@/types';
 import { apiRequest } from '@/lib/api';
-import { Check, X, Volume2, Globe2, ShieldCheck, Heart, AlertCircle } from 'lucide-react';
+import { Check, X, Volume2, ShieldCheck, Heart, AlertCircle } from 'lucide-react';
 
 interface PatientTodayData {
   patient: {
     id: number;
     name: string;
-    preferred_language: 'en' | 'hi';
   };
   doses: Dose[];
   date: string;
@@ -19,7 +18,6 @@ export function PatientView() {
   const [data, setData] = useState<PatientTodayData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lang, setLang] = useState<'hi' | 'en'>('hi');
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -28,7 +26,6 @@ export function PatientView() {
     try {
       const res = await apiRequest<PatientTodayData>(`/p/${token}/today`);
       setData(res);
-      setLang(res.patient.preferred_language || 'hi');
     } catch (err: any) {
       setError(err.message || 'Invalid or expired link. Please ask your family member for a new link.');
     } finally {
@@ -37,8 +34,8 @@ export function PatientView() {
   };
 
   useEffect(() => {
-    document.documentElement.lang = lang === 'hi' ? 'hi' : 'en';
-  }, [lang]);
+    document.documentElement.lang = 'en';
+  }, []);
 
   useEffect(() => {
     fetchTodayDoses();
@@ -49,7 +46,7 @@ export function PatientView() {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang === 'hi' ? 'hi-IN' : 'en-US';
+      utterance.lang = 'en-US';
       utterance.rate = 0.9;
       window.speechSynthesis.speak(utterance);
     }
@@ -66,14 +63,9 @@ export function PatientView() {
         }),
       });
 
-      const message =
-        action === 'taken'
-          ? lang === 'hi'
-            ? `${dose.medication_name} ले ली गई है। बहुत बढ़िया!`
-            : `${dose.medication_name} marked as taken. Well done!`
-          : lang === 'hi'
-          ? `${dose.medication_name} छोड़ दी गई है।`
-          : `${dose.medication_name} skipped.`;
+      const message = action === 'taken'
+        ? `${dose.medication_name} marked as taken. Well done!`
+        : `${dose.medication_name} skipped.`;
 
       setSuccessMessage(message);
       speakText(message);
@@ -94,9 +86,7 @@ export function PatientView() {
       <main className="min-h-screen bg-[#F8FAF9] flex items-center justify-center p-6 text-center">
         <div className="space-y-4">
           <div className="w-16 h-16 border-4 border-[#167C53] border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-2xl font-bold text-gray-800">
-            {lang === 'hi' ? 'दवाइयाँ लोड हो रही हैं...' : 'Loading your medicines...'}
-          </p>
+          <p className="text-2xl font-bold text-gray-800">Loading your medicines...</p>
         </div>
       </main>
     );
@@ -107,59 +97,38 @@ export function PatientView() {
       <main className="min-h-screen bg-[#F8FAF9] flex items-center justify-center p-6 text-center">
         <div className="max-w-md bg-white p-8 rounded-3xl border border-red-200 shadow-sm space-y-4">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
-          <h2 className="text-2xl font-bold text-gray-900">
-            {lang === 'hi' ? 'लिंक अमान्य है' : 'Link Invalid or Expired'}
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900">Link invalid or expired</h2>
           <p className="text-base text-gray-600">{error}</p>
           <p className="text-sm text-gray-500">
-            {lang === 'hi'
-              ? 'कृपया अपने परिवार के सदस्य (केयरगिवर) से नया लिंक मांगें।'
-              : 'Please request an updated access link from your caregiver.'}
+            Please request an updated access link from your caregiver.
           </p>
         </div>
       </main>
     );
   }
 
-  // Translations
   const t = {
-    hi: {
-      greeting: `नमस्ते, ${data.patient.name} जी 🙏`,
-      title: 'आज की दवाइयाँ',
-      empty: 'आज के लिए कोई दवाई बाकी नहीं है। आप स्वस्थ रहें!',
-      beforeFood: 'खाना खाने से पहले',
-      afterFood: 'खाना खाने के बाद',
-      anyFood: 'किसी भी समय',
-      takenBtn: 'दवाई ले ली',
-      skipBtn: 'छोड़ दी',
-      alreadyTaken: 'ले ली गई ✅',
-      alreadySkipped: 'छोड़ दी गई',
-      speakBtn: 'बोलकर बताएं',
-      disclaimer: 'यह एक रिमाइंडर टूल है, चिकित्सकीय सलाह नहीं।',
-    },
-    en: {
-      greeting: `Hello, ${data.patient.name} 🙏`,
-      title: "Today's Medicines",
-      empty: 'No medicines remaining for today. Stay healthy!',
-      beforeFood: 'Before food',
-      afterFood: 'After food',
-      anyFood: 'Any time',
-      takenBtn: 'I Took This',
-      skipBtn: 'Skip',
-      alreadyTaken: 'Taken ✅',
-      alreadySkipped: 'Skipped',
-      speakBtn: 'Read Aloud',
-      disclaimer: 'This is a reminder tool, not medical advice.',
-    },
-  }[lang];
+    greeting: `Hello, ${data.patient.name}`,
+    title: "Today's medicines",
+    empty: 'No medicines remaining for today.',
+    beforeFood: 'Before food',
+    afterFood: 'After food',
+    anyFood: 'Any time',
+    takenBtn: 'I took this',
+    skipBtn: 'Skip',
+    alreadyTaken: 'Taken',
+    alreadySkipped: 'Skipped',
+    speakBtn: 'Read aloud',
+    disclaimer: 'This is a reminder tool, not medical advice.',
+  };
 
   return (
     <div className="min-h-screen bg-[#F8FAF9] text-[#202824] flex flex-col justify-between p-4 sm:p-8 max-w-2xl mx-auto">
       {/* Top Header */}
-      <header className="py-4 flex items-center justify-between border-b border-gray-200">
+      <header className="py-4 flex items-center border-b border-gray-200">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-[#167C53] flex items-center justify-center text-white font-black text-2xl shadow-sm">
-            द
+            DR
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-gray-900">DawaReminder</h1>
@@ -167,16 +136,6 @@ export function PatientView() {
           </div>
         </div>
 
-        {/* Hindi / English Toggle Button */}
-        <button
-          type="button"
-          aria-label={lang === 'hi' ? 'Switch language to English' : 'भाषा हिंदी में बदलें'}
-          onClick={() => setLang(lang === 'hi' ? 'en' : 'hi')}
-          className="flex min-h-11 items-center gap-1.5 px-3 py-2 bg-white border border-gray-300 rounded-2xl text-sm font-bold text-gray-800 hover:bg-gray-50 shadow-2xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#167C53]"
-        >
-          <Globe2 className="w-4 h-4 text-[#167C53]" />
-          <span>{lang === 'hi' ? 'English' : 'हिंदी'}</span>
-        </button>
       </header>
 
       {/* Floating Success Banner */}
@@ -194,7 +153,7 @@ export function PatientView() {
             {t.title}
           </h2>
           <span className="text-base font-bold text-gray-500 bg-white px-3 py-1 rounded-xl border">
-            {new Date().toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', {
+            {new Date().toLocaleDateString('en-IN', {
               weekday: 'short',
               day: 'numeric',
               month: 'short',
@@ -246,7 +205,7 @@ export function PatientView() {
                         />
                       ) : (
                         <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[#E9F5EF] text-[#167C53] flex items-center justify-center font-black text-3xl shrink-0">
-                          द
+                          DR
                         </div>
                       )}
                       <div className="space-y-1">
@@ -270,9 +229,7 @@ export function PatientView() {
                       aria-label={t.speakBtn}
                       onClick={() =>
                         speakText(
-                          lang === 'hi'
-                            ? `${scheduledTime} पर ${dose.medication_name} ${dose.medication_strength || ''}, ${foodInstruction}`
-                            : `At ${scheduledTime}, take ${dose.medication_name} ${dose.medication_strength || ''}, ${foodInstruction}`
+                          `At ${scheduledTime}, take ${dose.medication_name} ${dose.medication_strength || ''}, ${foodInstruction}`
                         )
                       }
                       title={t.speakBtn}
@@ -312,7 +269,7 @@ export function PatientView() {
                     <div className="grid grid-cols-2 gap-4 pt-2">
                       <button
                         type="button"
-                        aria-label={lang === 'hi' ? `${dose.medication_name}: ${t.takenBtn}` : `${t.takenBtn}: ${dose.medication_name}`}
+                        aria-label={`${t.takenBtn}: ${dose.medication_name}`}
                         onClick={() => handleAction(dose, 'taken')}
                         disabled={actionLoadingId === dose.id}
                         className="min-h-16 py-4 bg-[#167C53] hover:bg-[#0D4E34] text-white rounded-2xl font-black text-xl sm:text-2xl flex items-center justify-center gap-2 transition active:scale-95 shadow-md"
@@ -323,7 +280,7 @@ export function PatientView() {
 
                       <button
                         type="button"
-                        aria-label={lang === 'hi' ? `${dose.medication_name}: ${t.skipBtn}` : `${t.skipBtn}: ${dose.medication_name}`}
+                        aria-label={`${t.skipBtn}: ${dose.medication_name}`}
                         onClick={() => handleAction(dose, 'skipped')}
                         disabled={actionLoadingId === dose.id}
                         className="min-h-16 py-4 bg-white hover:bg-gray-100 border-2 border-gray-300 text-gray-700 rounded-2xl font-bold text-lg sm:text-xl flex items-center justify-center gap-2 transition active:scale-95"

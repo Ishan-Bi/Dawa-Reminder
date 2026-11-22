@@ -43,7 +43,7 @@ export function CaregiverLayout({
           {/* Logo / Header */}
           <div className="flex items-center space-x-3 px-2">
             <div className="w-10 h-10 rounded-xl bg-[#167C53] flex items-center justify-center text-white font-black text-xl shadow-sm">
-              द
+              DR
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-[#202824]">DawaReminder</h1>
@@ -143,7 +143,7 @@ export function CaregiverLayout({
         <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-20">
           <div className="flex items-center gap-3 md:hidden">
             <div className="w-8 h-8 rounded-lg bg-[#167C53] flex items-center justify-center text-white font-bold">
-              द
+              DR
             </div>
             <span className="font-bold text-gray-900">DawaReminder</span>
           </div>

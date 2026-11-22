@@ -10,7 +10,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['pwa-icon.svg'],
       manifest: {
-        name: 'DawaReminder - दवाई रिमाइंडर',
+        name: 'DawaReminder - Family Medication Reminders',
         short_name: 'DawaReminder',
         description: 'Visual medication reminder and tracker for elderly patients',
         theme_color: '#167C53',
