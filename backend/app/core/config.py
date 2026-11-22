@@ -38,6 +38,12 @@ class Settings(BaseSettings):
             self.SESSION_SECRET.startswith("dev_") or len(self.SESSION_SECRET) < 32
         ):
             raise ValueError("Production requires a SESSION_SECRET of at least 32 characters")
+        if self.ENVIRONMENT.lower() == "production":
+            database_url = self.DATABASE_URL.lower()
+            if not database_url.startswith(("postgres://", "postgresql://", "postgresql+asyncpg://")):
+                raise ValueError(
+                    "Production requires a PostgreSQL DATABASE_URL; SQLite is only for local development"
+                )
         return self
 
     # Cloudinary
