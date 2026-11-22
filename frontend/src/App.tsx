@@ -102,14 +102,6 @@ function HomePage() {
               <p className="mt-5 max-w-xl text-base leading-7 text-[#53665B] sm:text-lg">
                 Set up medicine reminders for someone you love. They get a calm, simple view; you can keep track of the routine.
               </p>
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                <Link to="/register" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#167C53] px-6 py-3 font-bold text-white shadow-md transition hover:bg-[#0D4E34] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#167C53]">
-                  Create caregiver account <span aria-hidden="true">→</span>
-                </Link>
-                <Link to="/login" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[#C8D8CE] bg-white px-6 py-3 font-bold text-[#315044] transition hover:bg-[#F5FAF6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#167C53]">
-                  I already have an account
-                </Link>
-              </div>
             </div>
 
             <div className="relative mx-auto w-full max-w-lg space-y-4">
@@ -117,10 +109,6 @@ function HomePage() {
                 <div className="flex items-start gap-3">
                   <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#EAF6EF] text-[#167C53]"><Shield aria-hidden="true" className="h-5 w-5" /></span>
                   <div><p className="text-xs font-bold uppercase tracking-[0.14em] text-[#708078]">Caregiver section</p><h3 className="mt-1 text-xl font-extrabold text-[#173B2B]">Manage the family routine</h3><p className="mt-1 text-sm leading-5 text-[#6A786F]">Set up patients, medicines, dose times, and review updates.</p></div>
-                </div>
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                  <Link to="/register" className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#167C53] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#0D4E34]">Create account <span aria-hidden="true">→</span></Link>
-                  <Link to="/login" className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-[#C8D8CE] bg-white px-4 py-2.5 text-sm font-bold text-[#315044] transition hover:bg-[#F5FAF6]">Caregiver sign in</Link>
                 </div>
               </article>
 
