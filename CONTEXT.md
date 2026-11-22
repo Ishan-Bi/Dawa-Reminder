@@ -43,6 +43,7 @@
 - Frontend uses Rollup's official WASM Node package to avoid the blocked native module. `npm run build` passes and the local Vite server responds at `http://127.0.0.1:3000/` with Smart App Control left on.
 - Backend integration tests are present; no frontend test files are present yet.
 - Frontend production build passes after Stage 5. PWA icon assets, manifest, service worker output, and browser install prompt are configured; iPhone home-screen installation still requires manual Safari verification on a real device.
+- Public landing page now leads with caregiver and patient workflows; technical backend status is available in a collapsed details panel. Production TypeScript/Vite/PWA build passes after this UI update.
 - Expired session records are removed when used; periodic session cleanup is not configured.
 - Stage 1 needs a live deployment and a real-device login check before it can be marked complete.
 

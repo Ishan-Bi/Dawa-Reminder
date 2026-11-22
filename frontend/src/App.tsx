@@ -41,100 +41,123 @@ function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] flex flex-col justify-between p-6 max-w-4xl mx-auto">
-      <header className="py-6 border-b border-gray-200">
+    <div className="min-h-screen bg-[#F8FAF9] flex flex-col justify-between px-5 sm:px-8 max-w-6xl mx-auto">
+      <header className="py-5 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-[#167C53] flex items-center justify-center text-white font-bold text-xl">
+          <Link to="/" aria-label="DawaReminder home" className="flex items-center space-x-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#167C53] flex items-center justify-center text-white font-bold text-xl shadow-sm">
               द
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-[#202824]">DawaReminder</h1>
-              <p className="text-xs text-[#5C6863]">दवाई रिमाइंडर — Family configures. Elderly follows.</p>
+              <h1 className="text-xl font-bold text-[#202824]">DawaReminder</h1>
+              <p className="text-xs text-[#5C6863]">परिवार साथ है · Family care, made simpler</p>
             </div>
-          </div>
-          <div className="flex items-center space-x-2">
+          </Link>
+          <nav aria-label="Main navigation" className="flex items-center gap-2">
+            <Link to="/login" className="hidden sm:inline-flex px-4 py-2.5 text-sm font-semibold text-[#315044] hover:text-[#167C53]">Sign in</Link>
             <Link
-              to="/app"
-              className="px-4 py-2 bg-[#167C53] text-white rounded-xl text-sm font-semibold hover:bg-[#0D4E34] transition shadow-xs"
+              to="/register"
+              className="inline-flex min-h-11 items-center rounded-xl bg-[#167C53] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0D4E34] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#167C53]"
             >
-              Caregiver Portal
+              Get started <span aria-hidden="true" className="ml-1">→</span>
             </Link>
-          </div>
+          </nav>
         </div>
       </header>
 
-      <main className="my-10 space-y-8">
-        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-          <h2 className="text-lg font-semibold text-[#202824] flex items-center gap-2">
-            <Activity className="w-5 h-5 text-[#167C53]" /> System Status
-          </h2>
-          {loading && <p className="text-sm text-gray-500">Checking backend & database connectivity...</p>}
-          {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 text-red-800 text-sm">
-              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-600" />
-              <div>
-                <p className="font-semibold">Backend Unreachable</p>
-                <p className="text-xs">{error}</p>
-                <p className="text-xs mt-1 text-gray-600">Ensure the backend server is running.</p>
+      <main className="my-8 sm:my-12 space-y-8 sm:space-y-12">
+        <section className="relative overflow-hidden rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-[#EAF6EF] via-white to-[#F5F0E5] px-6 py-10 sm:px-12 sm:py-14">
+          <div aria-hidden="true" className="absolute -right-12 -top-16 h-64 w-64 rounded-full bg-[#D7EBDD]/70 blur-2xl" />
+          <div className="relative grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="max-w-2xl">
+              <p className="inline-flex items-center gap-2 rounded-full border border-[#B8D9C5] bg-white/80 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[#167C53]">
+                <HeartHandshake aria-hidden="true" className="h-4 w-4" /> A little help, every day
+              </p>
+              <h2 className="mt-5 text-4xl font-black leading-tight tracking-tight text-[#173B2B] sm:text-5xl lg:text-6xl">
+                Care feels easier when everyone knows the routine.
+              </h2>
+              <p className="mt-5 max-w-xl text-base leading-7 text-[#53665B] sm:text-lg">
+                Set up medicine reminders for someone you love. They get a calm, simple view; you can keep track of the routine.
+              </p>
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                <Link to="/register" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#167C53] px-6 py-3 font-bold text-white shadow-md transition hover:bg-[#0D4E34] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#167C53]">
+                  Create caregiver account <span aria-hidden="true">→</span>
+                </Link>
+                <Link to="/login" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[#C8D8CE] bg-white px-6 py-3 font-bold text-[#315044] transition hover:bg-[#F5FAF6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#167C53]">
+                  I already have an account
+                </Link>
               </div>
+              <p className="mt-4 text-sm text-[#66756C]">Free to get started · Private caregiver sign-in</p>
             </div>
-          )}
-          {health && (
-            <div className="space-y-3">
-              <div className="p-4 bg-[#E9F5EF] border border-[#167C53]/30 rounded-xl flex items-center justify-between text-[#0D4E34] text-sm">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-[#167C53]" />
-                  <span className="font-medium">Backend Service: {health.service} v{health.version}</span>
-                </div>
-                <span className="px-2 py-1 text-xs bg-[#167C53] text-white rounded-full font-semibold uppercase">
-                  {health.status}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-xs">
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <span className="text-gray-500">Environment:</span>{' '}
-                  <span className="font-semibold text-gray-800">{health.environment}</span>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <span className="text-gray-500">Database Engine:</span>{' '}
-                  <span className="font-semibold text-gray-800">{health.database}</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-[#167C53] flex items-center justify-center">
-              <Shield className="w-5 h-5" />
+            <div className="relative mx-auto w-full max-w-md">
+              <div className="absolute -left-5 top-10 h-20 w-20 rounded-full bg-[#F4DCA5]/60 blur-xl" />
+              <div className="relative rounded-[1.75rem] border border-white bg-white/90 p-5 shadow-[0_24px_70px_-35px_rgba(31,77,53,0.45)] backdrop-blur sm:p-7">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#708078]">Made for families</p>
+                    <h3 className="mt-1 text-xl font-extrabold text-[#173B2B]">One shared routine</h3>
+                  </div>
+                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#EAF6EF] text-[#167C53]"><HeartHandshake aria-hidden="true" className="h-6 w-6" /></div>
+                </div>
+                <div className="mt-6 space-y-3">
+                  {[
+                    ['01', 'Family adds the medicine plan', 'Keep the instructions together.'],
+                    ['02', 'Share a simple patient link', 'No password needed for the patient view.'],
+                    ['03', 'See dose updates in one place', 'Stay in the loop from your account.'],
+                  ].map(([number, title, description]) => (
+                    <div key={number} className="flex gap-3 rounded-2xl bg-[#F7FAF8] p-3.5">
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-sm font-extrabold text-[#167C53] shadow-sm">{number}</span>
+                      <div><p className="font-bold text-[#253B30]">{title}</p><p className="mt-0.5 text-sm leading-5 text-[#6A786F]">{description}</p></div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 flex items-center gap-2 rounded-xl bg-[#FFF8E8] px-3.5 py-3 text-sm font-semibold text-[#785B1E]">
+                  <Shield aria-hidden="true" className="h-4 w-4 shrink-0" /> A reminder tool for family support
+                </div>
+              </div>
             </div>
-            <h3 className="font-bold text-lg text-gray-900">Caregiver Dashboard</h3>
-            <p className="text-sm text-gray-600">
-              Manage patient routines, schedule medicine timings, food instructions, and monitor live dose adherence.
-            </p>
-            <Link
-              to="/app"
-              className="inline-block pt-2 text-[#167C53] font-semibold text-sm hover:underline"
-            >
-              Open Caregiver Portal &rarr;
-            </Link>
           </div>
+        </section>
 
-          <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
-              <HeartHandshake className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-lg text-gray-900">Elderly Patient View</h3>
-            <p className="text-sm text-gray-600">
-              Zero passwords, large high-contrast visual cues, voice announcements, and Hindi language support.
-            </p>
-            <span className="text-xs text-gray-400 block pt-2">
-              (Accessible via patient secret QR code or link)
-            </span>
+        <details className="group rounded-2xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+          <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-4 font-semibold text-[#40534A] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#167C53]">
+            <span className="flex items-center gap-2"><Activity aria-hidden="true" className="h-5 w-5 text-[#167C53]" /> Technical service status</span>
+            <span aria-hidden="true" className="text-sm text-gray-500 group-open:rotate-180">⌄</span>
+          </summary>
+          <div className="mt-4 border-t border-gray-100 pt-4">
+            {loading && <p className="text-sm text-gray-500">Checking backend and database connectivity…</p>}
+            {error && <p role="status" className="flex items-center gap-2 text-sm text-red-700"><AlertCircle aria-hidden="true" className="h-4 w-4" /> Backend unavailable: {error}</p>}
+            {health && <p role="status" className="flex items-center gap-2 text-sm text-[#0D4E34]"><CheckCircle2 aria-hidden="true" className="h-4 w-4" /> {health.service} is {health.status}; database connected ({health.database}).</p>}
           </div>
-        </div>
+        </details>
+
+        <section aria-labelledby="features-heading" className="space-y-5">
+          <div className="max-w-2xl">
+            <p className="text-sm font-bold uppercase tracking-[0.12em] text-[#167C53]">For the whole family</p>
+            <h2 id="features-heading" className="mt-2 text-2xl font-extrabold tracking-tight text-[#173B2B] sm:text-3xl">Support that feels simple on both sides.</h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-100 text-[#167C53]"><Shield aria-hidden="true" className="h-5 w-5" /></div>
+              <h3 className="mt-4 text-lg font-bold text-gray-900">A clear caregiver workspace</h3>
+              <p className="mt-2 text-sm leading-6 text-gray-600">Keep patient details, medicine instructions, schedules, and dose history together.</p>
+            </article>
+            <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="grid h-11 w-11 place-items-center rounded-xl bg-amber-100 text-amber-800"><HeartHandshake aria-hidden="true" className="h-5 w-5" /></div>
+              <h3 className="mt-4 text-lg font-bold text-gray-900">A calmer patient view</h3>
+              <p className="mt-2 text-sm leading-6 text-gray-600">Large, easy-to-read dose cards and simple actions, opened from a family-shared link.</p>
+            </article>
+            <article className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="grid h-11 w-11 place-items-center rounded-xl bg-sky-100 text-sky-800"><Activity aria-hidden="true" className="h-5 w-5" /></div>
+              <h3 className="mt-4 text-lg font-bold text-gray-900">Stay in the loop</h3>
+              <p className="mt-2 text-sm leading-6 text-gray-600">Review recorded dose updates and use Hindi or English in the patient experience.</p>
+            </article>
+          </div>
+          <Link to="/register" className="inline-flex min-h-11 items-center gap-2 rounded-xl px-1 py-2 font-bold text-[#167C53] hover:text-[#0D4E34] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#167C53]">
+            Set up your family account <span aria-hidden="true">→</span>
+          </Link>
+        </section>
       </main>
 
       <footer className="py-6 border-t border-gray-200 text-center text-xs text-gray-500 space-y-1">
