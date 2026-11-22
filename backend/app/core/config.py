@@ -2,6 +2,7 @@
 Core configuration settings for DawaReminder backend.
 """
 from typing import List, Union
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, field_validator, model_validator
 
@@ -70,12 +71,22 @@ class Settings(BaseSettings):
         """
         Ensures the database URL uses an async driver.
         Neon/Render provides postgres:// or postgresql://, which must use postgresql+asyncpg://
+        Neon connection strings use sslmode=require, while asyncpg expects ssl=require.
         """
         url = self.DATABASE_URL
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql+asyncpg://", 1)
         elif url.startswith("postgresql://") and not url.startswith("postgresql+asyncpg://"):
             url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+        parsed = urlsplit(url)
+        query = parse_qsl(parsed.query, keep_blank_values=True)
+        sslmode_values = [value for key, value in query if key == "sslmode"]
+        if sslmode_values:
+            query = [(key, value) for key, value in query if key != "sslmode"]
+            if not any(key == "ssl" for key, _ in query):
+                query.append(("ssl", sslmode_values[-1]))
+            url = urlunsplit(parsed._replace(query=urlencode(query)))
         return url
 
 
