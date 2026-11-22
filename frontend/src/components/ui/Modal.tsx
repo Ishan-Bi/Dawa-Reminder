@@ -1,47 +1,118 @@
-import React, { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: Parameters<typeof clsx>) {
+  return twMerge(clsx(inputs));
+}
 
 interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  children: React.ReactNode;
+  isOpen:    boolean;
+  onClose:   () => void;
+  title?:    string;
+  children:  React.ReactNode;
+  size?:     'sm' | 'md' | 'lg' | 'xl';
+  className?: string;
+  /** Legacy prop — maps to size; pass a Tailwind max-w-* class */
   maxWidth?: string;
 }
 
-export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }: ModalProps) {
+const sizeClasses = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-2xl',
+};
+
+export function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  size      = 'md',
+  className,
+  maxWidth,
+}: ModalProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  /* Focus trap — focus the panel on open */
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    if (isOpen) panelRef.current?.focus();
+  }, [isOpen]);
+
+  /* Close on Escape */
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isOpen, onClose]);
+
+  /* Prevent body scroll */
+  useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = '';
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onClose]);
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={title ? 'modal-title' : undefined}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+    >
+      {/* Backdrop */}
       <div
-        className={`w-full ${maxWidth} bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden transform transition-all max-h-[90vh] flex flex-col`}
+        className="modal-backdrop absolute inset-0 bg-ink/40 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Panel */}
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        className={cn(
+          'modal-panel relative z-10 w-full bg-surface rounded-modal shadow-modal',
+          'flex flex-col max-h-[90vh] overflow-hidden',
+          'outline-none',
+          maxWidth ?? sizeClasses[size],
+          className,
+        )}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-bold text-[#202824]">{title}</h3>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="p-6 overflow-y-auto space-y-4">{children}</div>
+        {/* Header */}
+        {title && (
+          <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-surface-border flex-shrink-0">
+            <h2
+              id="modal-title"
+              className="text-lg font-heading font-bold text-ink"
+            >
+              {title}
+            </h2>
+            <button
+              onClick={onClose}
+              aria-label="Close dialog"
+              className="p-1.5 rounded-btn text-ink-muted hover:text-ink hover:bg-surface-hover transition-colors duration-[150ms]"
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          </div>
+        )}
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

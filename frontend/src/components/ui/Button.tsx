@@ -1,44 +1,88 @@
-import React from 'react';
+import { forwardRef } from 'react';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+import { Loader2 } from 'lucide-react';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+function cn(...inputs: Parameters<typeof clsx>) {
+  return twMerge(clsx(inputs));
+}
+
+type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+type Size    = 'sm' | 'md' | 'lg';
+
+const variantStyles: Record<Variant, string> = {
+  primary:
+    'bg-brand text-white border border-brand hover:bg-brand-hover hover:border-brand-hover active:scale-[0.98] shadow-sm',
+  secondary:
+    'bg-brand-soft text-brand-text border border-brand-soft hover:bg-brand-light hover:border-brand-border active:scale-[0.98]',
+  outline:
+    'bg-surface text-ink border border-surface-border hover:bg-surface-hover hover:border-ink-subtle active:scale-[0.98]',
+  ghost:
+    'bg-transparent text-ink-muted border border-transparent hover:bg-surface-hover hover:text-ink active:scale-[0.98]',
+  danger:
+    'bg-status-missed-bg text-status-missed-text border border-status-missed-border hover:bg-red-100 active:scale-[0.98]',
+};
+
+const sizeStyles: Record<Size, string> = {
+  sm: 'h-8  px-3   text-xs  gap-1.5 rounded-btn',
+  md: 'h-10 px-4   text-sm  gap-2   rounded-btn',
+  lg: 'h-12 px-5   text-base gap-2.5 rounded-btn',
+};
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?:   Variant;
+  size?:      Size;
   isLoading?: boolean;
+  leftIcon?:  React.ReactNode;
+  rightIcon?: React.ReactNode;
+  fullWidth?: boolean;
 }
 
-export function Button({
-  children,
-  variant = 'primary',
-  size = 'md',
-  isLoading = false,
-  className = '',
-  disabled,
-  ...props
-}: ButtonProps) {
-  const sizeStyles = {
-    sm: 'px-3 py-1.5 text-xs rounded-lg',
-    md: 'px-4 py-2 text-sm rounded-xl',
-    lg: 'px-6 py-3 text-base rounded-xl font-semibold',
-  };
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      variant   = 'primary',
+      size      = 'md',
+      isLoading = false,
+      leftIcon,
+      rightIcon,
+      fullWidth = false,
+      disabled,
+      children,
+      className,
+      ...props
+    },
+    ref,
+  ) => {
+    const isDisabled = disabled || isLoading;
 
-  const variantStyles = {
-    primary: 'bg-[#167C53] text-white hover:bg-[#0D4E34] shadow-sm',
-    secondary: 'bg-[#E9F5EF] text-[#167C53] hover:bg-[#d8ece2]',
-    outline: 'border border-gray-200 text-gray-700 bg-white hover:bg-gray-50',
-    danger: 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200',
-    ghost: 'text-gray-600 hover:bg-gray-100',
-  };
+    return (
+      <button
+        ref={ref}
+        disabled={isDisabled}
+        className={cn(
+          'inline-flex items-center justify-center font-semibold',
+          'transition-all duration-[150ms] ease-out',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2',
+          'disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100',
+          variantStyles[variant],
+          sizeStyles[size],
+          fullWidth && 'w-full',
+          className,
+        )}
+        {...props}
+      >
+        {isLoading ? (
+          <Loader2 className="animate-spin" aria-hidden="true" size={16} />
+        ) : (
+          leftIcon
+        )}
+        {children}
+        {!isLoading && rightIcon}
+      </button>
+    );
+  },
+);
 
-  return (
-    <button
-      className={`inline-flex items-center justify-center gap-2 font-medium transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
-      disabled={disabled || isLoading}
-      {...props}
-    >
-      {isLoading ? (
-        <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-      ) : null}
-      {children}
-    </button>
-  );
-}
+Button.displayName = 'Button';

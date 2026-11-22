@@ -2,37 +2,203 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── CSS Custom Properties ──────────────────────────────────────────────── */
 @layer base {
   :root {
-    --background: #F8FAF9;
-    --foreground: #202824;
-    --primary: #167C53;
-    --primary-foreground: #FFFFFF;
-    --muted: #5C6863;
-    --border: #E2E8F0;
+    /* Brand */
+    --brand:          #0F766E;
+    --brand-hover:    #115E59;
+    --brand-light:    #CCFBF1;
+    --brand-soft:     #D1FAE5;
+    --brand-softer:   #ECFDF5;
+    --brand-text:     #134E4A;
+    --brand-muted:    #5EEAD4;
+
+    /* Surfaces */
+    --surface:        #FFFFFF;
+    --surface-bg:     #FAF8F5;
+    --surface-border: #E7E5E4;
+    --surface-hover:  #F5F5F4;
+
+    /* Ink */
+    --ink:            #1C1917;
+    --ink-muted:      #78716C;
+    --ink-subtle:     #A8A29E;
+
+    /* Status */
+    --status-taken-bg:     #DCFCE7;
+    --status-taken-text:   #166534;
+    --status-taken-border: #86EFAC;
+    --status-taken-icon:   #16A34A;
+
+    --status-pending-bg:     #FEF9C3;
+    --status-pending-text:   #854D0E;
+    --status-pending-border: #FDE047;
+    --status-pending-icon:   #CA8A04;
+
+    --status-missed-bg:     #FEE2E2;
+    --status-missed-text:   #991B1B;
+    --status-missed-border: #FCA5A5;
+    --status-missed-icon:   #DC2626;
+
+    --status-skipped-bg:     #F1F5F9;
+    --status-skipped-text:   #475569;
+    --status-skipped-border: #CBD5E1;
+    --status-skipped-icon:   #64748B;
+
+    /* Radius */
+    --radius-card:  12px;
+    --radius-modal: 16px;
+    --radius-btn:   10px;
+    --radius-pill:  9999px;
+
+    /* Shadows */
+    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+    --shadow-modal: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.04);
+    --shadow-focus: 0 0 0 3px rgb(15 118 110 / 0.25);
+  }
+}
+
+/* ─── Base Typography ─────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
   }
 
   body {
-    background-color: var(--background);
-    color: var(--foreground);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--surface-bg);
+    color: var(--ink);
+    font-family: 'Inter', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
   }
 
+  h1, h2, h3, h4 {
+    font-family: 'Manrope', 'Inter', 'Noto Sans Devanagari', sans-serif;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--ink);
+  }
+
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+  h4 { font-size: 1.125rem; }
+
+  p {
+    color: var(--ink-muted);
+    line-height: 1.65;
+  }
+
+  strong { color: var(--ink); }
+
+  /* Focus ring — consistent across all interactive elements */
   :focus-visible {
-    outline: 3px solid #167C53;
-    outline-offset: 3px;
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 
+  /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
+    *, *::before, *::after {
       scroll-behavior: auto !important;
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+/* ─── Custom Scrollbar ────────────────────────────────────────────────────── */
+@layer base {
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--surface-border);
+    border-radius: var(--radius-pill);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-subtle); }
+}
+
+/* ─── Utility Layer ───────────────────────────────────────────────────────── */
+@layer components {
+  /* Semantic surface card */
+  .card {
+    @apply bg-surface rounded-card border border-surface-border shadow-card;
+  }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--surface-hover) 25%,
+      var(--surface-border) 50%,
+      var(--surface-hover) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+    border-radius: 6px;
+  }
+
+  /* Heading utility */
+  .text-heading {
+    font-family: 'Manrope', 'Inter', sans-serif;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+
+  /* Muted body text */
+  .text-body-muted {
+    color: var(--ink-muted);
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  /* Interactive base — smooth transitions */
+  .interactive {
+    @apply transition-all duration-[150ms] ease-out cursor-pointer;
+  }
+
+  /* Focus ring helper */
+  .ring-brand {
+    @apply ring-2 ring-brand ring-offset-2;
+  }
+}
+
+/* ─── Keyframe Animations ─────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ─── Modal Overlay ───────────────────────────────────────────────────────── */
+.modal-backdrop {
+  animation: fadeIn 150ms ease-out;
+}
+.modal-panel {
+  animation: scaleIn 150ms ease-out;
 }
