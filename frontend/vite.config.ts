@@ -13,8 +13,8 @@ export default defineConfig({
         name: 'DawaReminder - Family Medication Reminders',
         short_name: 'DawaReminder',
         description: 'Visual medication reminder and tracker for elderly patients',
-        theme_color: '#167C53',
-        background_color: '#F8FAF9',
+        theme_color: '#4BAE9A',
+        background_color: '#F2F8F5',
         display: 'standalone',
         orientation: 'portrait',
         icons: [

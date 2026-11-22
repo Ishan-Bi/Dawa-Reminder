@@ -163,10 +163,6 @@
     @apply transition-all duration-[150ms] ease-out cursor-pointer;
   }
 
-  /* Focus ring helper */
-  .ring-brand {
-    @apply ring-2 ring-brand ring-offset-2;
-  }
 }
 
 /* ─── Keyframe Animations ─────────────────────────────────────────────────── */
