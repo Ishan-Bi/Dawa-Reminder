@@ -26,9 +26,31 @@ interface HealthData {
 }
 
 function HomePage() {
+  const navigate = useNavigate();
   const [health, setHealth] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [patientAccess, setPatientAccess] = useState('');
+  const [patientAccessError, setPatientAccessError] = useState('');
+
+  const openPatientSection = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const value = patientAccess.trim();
+    let token = value.replace(/^\/?p\//, '').replace(/\/+$/, '');
+    if (/^https?:\/\//i.test(value)) {
+      try {
+        token = new URL(value).pathname.match(/\/p\/([^/]+)\/?$/)?.[1] ?? '';
+      } catch {
+        token = '';
+      }
+    }
+    if (!token || token.includes('/')) {
+      setPatientAccessError('Paste a patient access link or its access token.');
+      return;
+    }
+    setPatientAccessError('');
+    navigate(`/p/${encodeURIComponent(token)}`);
+  };
 
   useEffect(() => {
     apiRequest<HealthData>('/health')
@@ -90,32 +112,32 @@ function HomePage() {
               </div>
             </div>
 
-            <div className="relative mx-auto w-full max-w-md">
-              <div className="absolute -left-5 top-10 h-20 w-20 rounded-full bg-[#F4DCA5]/60 blur-xl" />
-              <div className="relative rounded-[1.75rem] border border-white bg-white/90 p-5 shadow-[0_24px_70px_-35px_rgba(31,77,53,0.45)] backdrop-blur sm:p-7">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#708078]">Made for families</p>
-                    <h3 className="mt-1 text-xl font-extrabold text-[#173B2B]">One shared routine</h3>
+            <div className="relative mx-auto w-full max-w-lg space-y-4">
+              <article id="caregiver-section" className="rounded-[1.75rem] border border-white bg-white/95 p-5 shadow-[0_24px_70px_-35px_rgba(31,77,53,0.35)] backdrop-blur sm:p-6">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#EAF6EF] text-[#167C53]"><Shield aria-hidden="true" className="h-5 w-5" /></span>
+                  <div><p className="text-xs font-bold uppercase tracking-[0.14em] text-[#708078]">Caregiver section</p><h3 className="mt-1 text-xl font-extrabold text-[#173B2B]">Manage the family routine</h3><p className="mt-1 text-sm leading-5 text-[#6A786F]">Set up patients, medicines, dose times, and review updates.</p></div>
+                </div>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <Link to="/register" className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#167C53] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#0D4E34]">Create account <span aria-hidden="true">→</span></Link>
+                  <Link to="/login" className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-[#C8D8CE] bg-white px-4 py-2.5 text-sm font-bold text-[#315044] transition hover:bg-[#F5FAF6]">Caregiver sign in</Link>
+                </div>
+              </article>
+
+              <article id="patient-section" className="rounded-[1.75rem] border border-[#CDE8DF] bg-[#F1FAF7] p-5 shadow-sm sm:p-6">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white text-[#4BAE9A]"><HeartHandshake aria-hidden="true" className="h-5 w-5" /></span>
+                  <div><p className="text-xs font-bold uppercase tracking-[0.14em] text-[#4B9B88]">Patient section</p><h3 className="mt-1 text-xl font-extrabold text-[#24443A]">Open your medicine schedule</h3><p className="mt-1 text-sm leading-5 text-[#688078]">Use the link or access token shared by your caregiver. No account is needed.</p></div>
+                </div>
+                <form className="mt-4 space-y-2" onSubmit={openPatientSection}>
+                  <label htmlFor="patient-access" className="text-xs font-bold text-[#48675C]">Patient link or access token</label>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <input id="patient-access" value={patientAccess} onChange={(event) => { setPatientAccess(event.target.value); setPatientAccessError(''); }} placeholder="Paste your shared patient link" className="min-h-11 min-w-0 flex-1 rounded-xl border border-[#CFE3DC] bg-white px-3 text-sm text-[#263A32] outline-none placeholder:text-[#9AAAA3] focus:border-[#4BAE9A] focus:ring-2 focus:ring-[#4BAE9A]/20" />
+                    <button type="submit" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#4BAE9A] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#368F7E]">Open patient view <span aria-hidden="true">→</span></button>
                   </div>
-                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#EAF6EF] text-[#167C53]"><HeartHandshake aria-hidden="true" className="h-6 w-6" /></div>
-                </div>
-                <div className="mt-6 space-y-3">
-                  {[
-                    ['01', 'Family adds the medicine plan', 'Keep the instructions together.'],
-                    ['02', 'Share a simple patient link', 'No password needed for the patient view.'],
-                    ['03', 'See dose updates in one place', 'Stay in the loop from your account.'],
-                  ].map(([number, title, description]) => (
-                    <div key={number} className="flex gap-3 rounded-2xl bg-[#F7FAF8] p-3.5">
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-sm font-extrabold text-[#167C53] shadow-sm">{number}</span>
-                      <div><p className="font-bold text-[#253B30]">{title}</p><p className="mt-0.5 text-sm leading-5 text-[#6A786F]">{description}</p></div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 flex items-center gap-2 rounded-xl bg-[#FFF8E8] px-3.5 py-3 text-sm font-semibold text-[#785B1E]">
-                  <Shield aria-hidden="true" className="h-4 w-4 shrink-0" /> A reminder tool for family support
-                </div>
-              </div>
+                  {patientAccessError && <p role="alert" className="text-sm font-semibold text-red-700">{patientAccessError}</p>}
+                </form>
+              </article>
             </div>
           </div>
         </section>
