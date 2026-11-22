@@ -13,7 +13,6 @@ import {
   QrCode,
   Check,
   X,
-  Sparkles,
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -34,6 +33,7 @@ export function DashboardView({
   onOpenAddPatient,
 }: DashboardViewProps) {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   if (!patient) {
     return (
@@ -57,13 +57,19 @@ export function DashboardView({
   const takenDoses = doses.filter((d) => d.status === 'taken').length;
   const pendingDoses = doses.filter((d) => d.status === 'pending').length;
   const missedDoses = doses.filter((d) => d.status === 'missed').length;
-  const adherenceRate = totalDoses > 0 ? Math.round((takenDoses / totalDoses) * 100) : 100;
+  const adherenceRate = totalDoses > 0 ? Math.round((takenDoses / totalDoses) * 100) : null;
+  const pendingQueue = doses
+    .filter((dose) => dose.status === 'pending')
+    .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime());
+  const now = Date.now();
+  const nextDose = pendingQueue.find((dose) => new Date(dose.scheduled_at).getTime() >= now) ?? pendingQueue[0] ?? null;
 
   // Format scheduled_at to IST HH:MM display
   const formatTime = (isoString: string) => {
     try {
       const dt = new Date(isoString);
       return dt.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
         hour: '2-digit',
         minute: '2-digit',
         hour12: true,
@@ -75,43 +81,60 @@ export function DashboardView({
 
   const handleUpdateStatus = async (doseId: number, status: 'taken' | 'skipped') => {
     setUpdatingId(doseId);
+    setActionError(null);
     try {
       await apiRequest(`/doses/${doseId}`, {
         method: 'PATCH',
         body: JSON.stringify({ status, acted_by: 'caregiver' }),
       });
       onRefreshDoses();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Could not update this dose. Please try again.');
     } finally {
       setUpdatingId(null);
     }
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Top Banner & Quick Controls (heal.me & Medico style) */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-[#202824] flex items-center gap-2">
-            Medication Tracker <Sparkles className="w-5 h-5 text-[#167C53]" />
-          </h2>
-          <p className="text-sm text-gray-500">
-            Today&apos;s routine for <span className="font-semibold text-gray-800">{patient.name}</span>
-          </p>
+    <div className="space-y-6 animate-fade-in">
+      <section className="overflow-hidden rounded-3xl bg-[#123D2C] p-6 text-white shadow-sm md:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-200">Care overview</p>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight">Today for {patient.name}</h2>
+            <p className="mt-2 text-sm text-emerald-100">
+              {new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="md" onClick={onOpenQrModal} className="!border-white/25 !bg-white/10 !text-white hover:!bg-white/20 hover:!text-white">
+              <QrCode aria-hidden="true" className="h-4 w-4" /> Share patient link
+            </Button>
+            <Button size="md" onClick={onOpenAddMedication} className="!bg-white !text-[#123D2C] hover:!bg-emerald-50">
+              <Plus aria-hidden="true" className="h-4 w-4" /> Add medication
+            </Button>
+          </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={onOpenQrModal}>
-            <QrCode className="w-4 h-4 text-gray-600" /> Share Patient Link & QR
-          </Button>
-          <Button size="sm" onClick={onOpenAddMedication}>
-            <Plus className="w-4 h-4" /> Add Medication
-          </Button>
+        <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-white/15 bg-white/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/15"><Clock aria-hidden="true" className="h-5 w-5" /></span>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">Next pending dose</p>
+              {nextDose ? (
+                <p className="mt-0.5 font-bold">{nextDose.medication_name} {nextDose.medication_strength ? `· ${nextDose.medication_strength}` : ''}</p>
+              ) : (
+                <p className="mt-0.5 font-bold">No pending doses today</p>
+              )}
+            </div>
+          </div>
+          {nextDose && <p className="text-xl font-extrabold tabular-nums sm:text-2xl">{formatTime(nextDose.scheduled_at)}</p>}
         </div>
-      </div>
+      </section>
 
-      {/* Metric Cards (heal.me & MediFlow style) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
+      {actionError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{actionError}</p>}
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
           <div className="w-12 h-12 rounded-xl bg-emerald-50 text-[#167C53] flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-6 h-6" />
           </div>
@@ -121,7 +144,7 @@ export function DashboardView({
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
+        <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
           <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
             <Clock className="w-6 h-6" />
           </div>
@@ -131,7 +154,7 @@ export function DashboardView({
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
+        <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
           <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
             <AlertTriangle className="w-6 h-6" />
           </div>
@@ -141,19 +164,19 @@ export function DashboardView({
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 font-bold text-lg">
-            {adherenceRate}%
+        <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-lg font-bold text-teal-700">
+            {adherenceRate === null ? '—' : `${adherenceRate}%`}
           </div>
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Adherence</p>
-            <p className="text-sm font-semibold text-gray-800">{takenDoses} of {totalDoses} doses</p>
+            <p className="text-sm font-semibold text-gray-800">{totalDoses ? `${takenDoses} of ${totalDoses}` : 'No doses yet'}</p>
           </div>
         </div>
       </div>
 
       {/* Main Routine & Timeline (Pharmax style) */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 md:p-8 space-y-6">
+      <div className="space-y-6 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm md:p-8">
         <div className="flex items-center justify-between pb-4 border-b border-gray-100">
           <div className="flex items-center gap-2 text-gray-800 font-bold text-lg">
             <Calendar className="w-5 h-5 text-[#167C53]" />

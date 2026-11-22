@@ -45,6 +45,7 @@
 - Frontend production build passes after Stage 5. PWA icon assets, manifest, service worker output, and browser install prompt are configured; iPhone home-screen installation still requires manual Safari verification on a real device.
 - Public landing page now leads with caregiver and patient workflows; technical backend status is available in a collapsed details panel. Production TypeScript/Vite/PWA build passes after this UI update.
 - Visible frontend copy and branding are English-only per user preference; the caregiver patient form defaults the stored language to English.
+- Caregiver dashboard now prioritizes today's patient plan, next pending dose, key dose counts, and quick actions; empty-day adherence is shown as unavailable instead of 100%.
 - Expired session records are removed when used; periodic session cleanup is not configured.
 - Stage 1 needs a live deployment and a real-device login check before it can be marked complete.
 
