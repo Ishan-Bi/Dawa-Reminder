@@ -44,14 +44,22 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
 
+      - name: Apply Database Migrations
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:dawa_secure_pass@localhost:5432/dawareminder_test
+        run: python -m alembic -c alembic.ini upgrade head
+
       - name: Run Backend Pytest Suite
+        working-directory: ./backend
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:dawa_secure_pass@localhost:5432/dawareminder_test
           REDIS_URL: redis://localhost:6379/0
-          SECRET_KEY: test_secret_key_ci_only
+          SESSION_SECRET: test_session_secret_ci_only_with_more_than_32_chars
+          PYTHONPATH: .
         run: |
-          if [ -d backend/tests ] && find backend/tests -type f \( -name 'test_*.py' -o -name '*_test.py' \) -print -quit | grep -q .; then
-            pytest -v backend/tests/ --maxfail=1
+          if [ -d tests ] && find tests -type f \( -name 'test_*.py' -o -name '*_test.py' \) -print -quit | grep -q .; then
+            pytest -v tests/ --maxfail=1
           else
             echo "No backend test files found; skipping pytest until tests are added."
           fi
