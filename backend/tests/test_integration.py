@@ -14,10 +14,16 @@ End-to-end integration test validating Section 12 acceptance test:
 import pytest
 from httpx import AsyncClient, ASGITransport
 from app.main import app
+from app.core.timezone import today_kolkata, to_utc_datetime
 
 
 @pytest.mark.asyncio
-async def test_full_acceptance_workflow():
+async def test_full_acceptance_workflow(monkeypatch):
+    # Keep the scheduled 08:00 dose pending regardless of the CI runner's clock.
+    monkeypatch.setattr(
+        "app.services.dose_service.now_utc",
+        lambda: to_utc_datetime(today_kolkata(), "07:59"),
+    )
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         # 1. Caregiver registration
