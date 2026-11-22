@@ -1,8 +1,18 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { apiRequest } from '@/lib/api';
-import { Activity, Heart, Shield, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Caregiver, Patient, Dose } from '@/types';
+import { CaregiverLayout } from '@/components/layout/CaregiverLayout';
+import { DashboardView } from '@/features/caregiver/DashboardView';
+import { PatientsView } from '@/features/caregiver/PatientsView';
+import { MedicationsView } from '@/features/caregiver/MedicationsView';
+import { HistoryView } from '@/features/caregiver/HistoryView';
+import { AddPatientModal } from '@/features/caregiver/AddPatientModal';
+import { AddMedicationModal } from '@/features/caregiver/AddMedicationModal';
+import { ShareQrModal } from '@/features/caregiver/ShareQrModal';
+import { PatientView } from '@/features/patient/PatientView';
+import { Activity, Shield, HeartHandshake, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface HealthData {
   status: string;
@@ -10,12 +20,6 @@ interface HealthData {
   version: string;
   environment: string;
   database: string;
-}
-
-interface Caregiver {
-  id: number;
-  name: string;
-  email: string;
 }
 
 function HomePage() {
@@ -51,7 +55,7 @@ function HomePage() {
           <div className="flex items-center space-x-2">
             <Link
               to="/app"
-              className="px-4 py-2 bg-[#167C53] text-white rounded-lg text-sm font-medium hover:bg-[#0D4E34] transition"
+              className="px-4 py-2 bg-[#167C53] text-white rounded-xl text-sm font-semibold hover:bg-[#0D4E34] transition shadow-xs"
             >
               Caregiver Portal
             </Link>
@@ -62,16 +66,16 @@ function HomePage() {
       <main className="my-10 space-y-8">
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
           <h2 className="text-lg font-semibold text-[#202824] flex items-center gap-2">
-            <Activity className="w-5 h-5 text-[#167C53]" /> System Foundation Status (Stage 0)
+            <Activity className="w-5 h-5 text-[#167C53]" /> System Status
           </h2>
-          {loading && <p className="text-sm text-gray-500">Checking backend and database connectivity...</p>}
+          {loading && <p className="text-sm text-gray-500">Checking backend & database connectivity...</p>}
           {error && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 text-red-800 text-sm">
               <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-red-600" />
               <div>
                 <p className="font-semibold">Backend Unreachable</p>
                 <p className="text-xs">{error}</p>
-                <p className="text-xs mt-1 text-gray-600">Ensure the backend server is running on port 8000.</p>
+                <p className="text-xs mt-1 text-gray-600">Ensure the backend server is running.</p>
               </div>
             </div>
           )}
@@ -101,36 +105,33 @@ function HomePage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="p-6 bg-white rounded-2xl border border-gray-200 space-y-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-100 text-[#167C53] flex items-center justify-center">
+          <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-[#167C53] flex items-center justify-center">
               <Shield className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-lg text-gray-800">Caregiver Dashboard</h3>
+            <h3 className="font-bold text-lg text-gray-900">Caregiver Dashboard</h3>
             <p className="text-sm text-gray-600">
-              Manage patient profiles, medication schedules, dosage timings, and live adherence monitoring.
+              Manage patient routines, schedule medicine timings, food instructions, and monitor live dose adherence.
             </p>
             <Link
               to="/app"
               className="inline-block pt-2 text-[#167C53] font-semibold text-sm hover:underline"
             >
-              Open Caregiver App &rarr;
+              Open Caregiver Portal &rarr;
             </Link>
           </div>
 
-          <div className="p-6 bg-white rounded-2xl border border-gray-200 space-y-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center">
-              <Heart className="w-5 h-5" />
+          <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+              <HeartHandshake className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-lg text-gray-800">Patient Interface</h3>
+            <h3 className="font-bold text-lg text-gray-900">Elderly Patient View</h3>
             <p className="text-sm text-gray-600">
-              Accessible, large-type, passwordless view designed for elderly patients with simple Taken/Skipped actions.
+              Zero passwords, large high-contrast visual cues, voice announcements, and Hindi language support.
             </p>
-            <Link
-              to="/p/demo-patient"
-              className="inline-block pt-2 text-[#167C53] font-semibold text-sm hover:underline"
-            >
-              Preview Patient View &rarr;
-            </Link>
+            <span className="text-xs text-gray-400 block pt-2">
+              (Accessible via patient secret QR code or link)
+            </span>
           </div>
         </div>
       </main>
@@ -139,44 +140,6 @@ function HomePage() {
         <p className="font-medium text-gray-600">This is a reminder tool, not medical advice.</p>
         <p>DawaReminder &copy; 2026 — HMASS Internal College Project</p>
       </footer>
-    </div>
-  );
-}
-
-function CaregiverShell() {
-  const [user, setUser] = useState<Caregiver | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    apiRequest<Caregiver>('/auth/me')
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return <main className="min-h-screen grid place-items-center text-lg text-gray-600">Loading your account...</main>;
-  }
-  if (!user) return <Navigate to="/login" replace />;
-
-  const logout = async () => {
-    await apiRequest('/auth/logout', { method: 'POST' });
-    setUser(null);
-  };
-
-  return (
-    <div className="min-h-screen bg-[#F8FAF9] p-6 max-w-4xl mx-auto space-y-6">
-      <div className="flex justify-between items-center pb-4 border-b">
-        <div>
-          <h1 className="text-xl font-bold text-[#167C53]">Caregiver Dashboard</h1>
-          <p className="text-sm text-gray-600">Signed in as {user.name}</p>
-        </div>
-        <button onClick={logout} className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-white">Log out</button>
-      </div>
-      <div className="p-8 bg-white border rounded-2xl text-center space-y-2">
-        <p className="font-semibold text-gray-700">Your account is ready</p>
-        <p className="text-sm text-gray-500">Patient and medicine management are the next project stage.</p>
-      </div>
     </div>
   );
 }
@@ -209,50 +172,219 @@ function AuthPage({ initialRegister = false }: { initialRegister?: boolean }) {
 
   return (
     <main className="min-h-screen bg-[#F8FAF9] px-5 py-10 grid place-items-center">
-      <section className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-7 shadow-sm">
-        <Link to="/" className="text-sm text-[#167C53] hover:underline">← DawaReminder</Link>
-        <h1 className="mt-5 text-2xl font-bold text-[#202824]">{registering ? 'Create caregiver account' : 'Caregiver sign in'}</h1>
-        <p className="mt-2 text-gray-600">Manage medication routines for your family.</p>
+      <section className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-8 shadow-sm">
+        <Link to="/" className="text-xs font-semibold text-[#167C53] hover:underline">← Home</Link>
+        <div className="flex items-center gap-3 mt-4">
+          <div className="w-9 h-9 rounded-xl bg-[#167C53] text-white flex items-center justify-center font-bold text-lg">
+            द
+          </div>
+          <h1 className="text-2xl font-bold text-[#202824]">
+            {registering ? 'Create Caregiver Account' : 'Caregiver Sign In'}
+          </h1>
+        </div>
+        <p className="mt-2 text-xs text-gray-500">Configure and track medication routines for elderly family members.</p>
+
         <form className="mt-6 space-y-4" onSubmit={submit}>
           {registering && (
-            <label className="block text-sm font-medium text-gray-700">Your name
-              <input required autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} className="mt-1 w-full rounded-lg border px-3 py-3 text-base" />
+            <label className="block text-xs font-bold text-gray-700">
+              Full Name
+              <input
+                required
+                autoComplete="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#167C53]/30"
+              />
             </label>
           )}
-          <label className="block text-sm font-medium text-gray-700">Email
-            <input required type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className="mt-1 w-full rounded-lg border px-3 py-3 text-base" />
+          <label className="block text-xs font-bold text-gray-700">
+            Email
+            <input
+              required
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#167C53]/30"
+            />
           </label>
-          <label className="block text-sm font-medium text-gray-700">Password
-            <input required type="password" minLength={10} autoComplete={registering ? 'new-password' : 'current-password'} value={password} onChange={(event) => setPassword(event.target.value)} className="mt-1 w-full rounded-lg border px-3 py-3 text-base" />
-            {registering && <span className="mt-1 block text-xs font-normal text-gray-500">Use at least 10 characters.</span>}
+          <label className="block text-xs font-bold text-gray-700">
+            Password
+            <input
+              required
+              type="password"
+              minLength={8}
+              autoComplete={registering ? 'new-password' : 'current-password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#167C53]/30"
+            />
+            {registering && <span className="mt-1 block text-[11px] font-normal text-gray-500">Use at least 8 characters.</span>}
           </label>
-          {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
-          <button disabled={submitting} className="w-full rounded-lg bg-[#167C53] px-4 py-3 text-base font-semibold text-white hover:bg-[#0D4E34] disabled:opacity-60">
-            {submitting ? 'Please wait...' : registering ? 'Create account' : 'Sign in'}
+          {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-xs text-red-800 border border-red-200">{error}</p>}
+          <button
+            disabled={submitting}
+            className="w-full rounded-xl bg-[#167C53] px-4 py-3 text-sm font-semibold text-white hover:bg-[#0D4E34] disabled:opacity-60 transition shadow-xs"
+          >
+            {submitting ? 'Please wait...' : registering ? 'Create Account' : 'Sign In'}
           </button>
         </form>
-        <button onClick={() => { setRegistering(!registering); setError(''); }} className="mt-5 min-h-11 text-sm text-[#167C53] hover:underline">
-          {registering ? 'Already have an account? Sign in' : 'New here? Create an account'}
+        <button
+          onClick={() => { setRegistering(!registering); setError(''); }}
+          className="mt-5 w-full text-center text-xs text-[#167C53] font-semibold hover:underline"
+        >
+          {registering ? 'Already have an account? Sign In' : 'New to DawaReminder? Create an Account'}
         </button>
       </section>
     </main>
   );
 }
 
-function PatientShell() {
-  const { token } = useParams<{ token: string }>();
+function CaregiverShell() {
+  const [user, setUser] = useState<Caregiver | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [activePatient, setActivePatient] = useState<Patient | null>(null);
+  const [doses, setDoses] = useState<Dose[]>([]);
+
+  // Modals state
+  const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
+  const [isAddMedicationOpen, setIsAddMedicationOpen] = useState(false);
+  const [qrModalPatient, setQrModalPatient] = useState<Patient | null>(null);
+
+  // 1. Fetch user profile
+  useEffect(() => {
+    apiRequest<Caregiver>('/auth/me')
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // 2. Fetch caregiver's patients
+  const fetchPatients = async () => {
+    try {
+      const data = await apiRequest<Patient[]>('/patients');
+      setPatients(data);
+      if (data.length > 0 && !activePatient) {
+        setActivePatient(data[0]);
+      }
+    } catch {
+      // Ignored if unauthorized
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchPatients();
+    }
+  }, [user]);
+
+  // 3. Fetch doses for active patient
+  const fetchDoses = async () => {
+    if (!activePatient) {
+      setDoses([]);
+      return;
+    }
+    try {
+      const data = await apiRequest<Dose[]>(`/patients/${activePatient.id}/doses`);
+      setDoses(data);
+    } catch {
+      setDoses([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchDoses();
+  }, [activePatient?.id]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#F8FAF9] flex items-center justify-center p-6 text-center">
+        <div className="space-y-3">
+          <div className="w-12 h-12 border-4 border-[#167C53] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm font-semibold text-gray-700">Loading caregiver portal...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!user) return <Navigate to="/login" replace />;
+
   return (
-    <div className="min-h-screen bg-[#F8FAF9] p-6 max-w-xl mx-auto space-y-6">
-      <div className="flex justify-between items-center pb-4 border-b">
-        <h1 className="text-xl font-bold text-[#167C53]">दवाई रिमाइंडर (Patient View)</h1>
-        <Link to="/" className="text-xs text-gray-500 hover:underline">Home</Link>
-      </div>
-      <div className="p-8 bg-white border rounded-2xl text-center space-y-3">
-        <p className="text-xs text-gray-500">Access Token: <code className="bg-gray-100 px-2 py-0.5 rounded">{token}</code></p>
-        <h2 className="text-2xl font-bold text-gray-800">आज की दवाइयाँ (Today&apos;s Doses)</h2>
-        <p className="text-sm text-gray-500">Large buttons and voice instructions will be connected in Stage 4.</p>
-      </div>
-    </div>
+    <CaregiverLayout
+      user={user}
+      patients={patients}
+      activePatient={activePatient}
+      onSelectPatient={setActivePatient}
+      onAddPatientClick={() => setIsAddPatientOpen(true)}
+    >
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <DashboardView
+              patient={activePatient}
+              doses={doses}
+              onRefreshDoses={fetchDoses}
+              onOpenAddMedication={() => setIsAddMedicationOpen(true)}
+              onOpenQrModal={() => setQrModalPatient(activePatient)}
+              onOpenAddPatient={() => setIsAddPatientOpen(true)}
+            />
+          }
+        />
+        <Route
+          path="/patients"
+          element={
+            <PatientsView
+              patients={patients}
+              activePatient={activePatient}
+              onSelectPatient={setActivePatient}
+              onRefreshPatients={fetchPatients}
+              onOpenAddPatient={() => setIsAddPatientOpen(true)}
+              onOpenQrModal={(p) => setQrModalPatient(p)}
+            />
+          }
+        />
+        <Route
+          path="/medications"
+          element={
+            <MedicationsView
+              patient={activePatient}
+              onOpenAddMedication={() => setIsAddMedicationOpen(true)}
+            />
+          }
+        />
+        <Route
+          path="/history"
+          element={<HistoryView patient={activePatient} />}
+        />
+      </Routes>
+
+      {/* Modals */}
+      <AddPatientModal
+        isOpen={isAddPatientOpen}
+        onClose={() => setIsAddPatientOpen(false)}
+        onSuccess={(newP) => {
+          fetchPatients();
+          setActivePatient(newP);
+        }}
+      />
+
+      <AddMedicationModal
+        isOpen={isAddMedicationOpen}
+        onClose={() => setIsAddMedicationOpen(false)}
+        patientId={activePatient?.id || null}
+        onSuccess={() => {
+          fetchDoses();
+        }}
+      />
+
+      <ShareQrModal
+        isOpen={!!qrModalPatient}
+        onClose={() => setQrModalPatient(null)}
+        patient={qrModalPatient}
+      />
+    </CaregiverLayout>
   );
 }
 
@@ -264,7 +396,7 @@ export default function App() {
         <Route path="/login" element={<AuthPage />} />
         <Route path="/register" element={<AuthPage initialRegister />} />
         <Route path="/app/*" element={<CaregiverShell />} />
-        <Route path="/p/:token" element={<PatientShell />} />
+        <Route path="/p/:token" element={<PatientView />} />
       </Routes>
     </BrowserRouter>
   );

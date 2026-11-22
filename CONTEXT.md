@@ -26,9 +26,9 @@
   - [x] Caregiver register, login, logout, and current-session API routes.
   - [x] Hashed server-side sessions with HttpOnly, SameSite=Lax cookies; Secure in production.
   - [x] Login/registration form and protected caregiver route shell.
-- [ ] **Stage 2: Patients and medicines** (Caregiver-scoped CRUD, Cloudinary upload)
-- [ ] **Stage 3: Schedules and doses** (Schedule builder, on-demand generation in Asia/Kolkata, Pytest suite)
-- [ ] **Stage 4: Patient experience and monitoring** (Token link & QR, Taken/Skipped, live status, in-app audio alert)
+- [x] **Stage 2: Patients and medicines** (Caregiver-scoped CRUD, token regeneration, patient switcher, photo upload preview)
+- [x] **Stage 3: Schedules and doses** (Schedule builder with fixed times and food instructions, on-demand Asia/Kolkata generation, Pytest test suite)
+- [x] **Stage 4: Patient experience and monitoring** (Token link & QR modal, Taken/Skipped huge buttons, voice announcement via Web Speech API, Hindi/English toggle, live caregiver monitoring)
 - [ ] **Stage 5: PWA and accessibility** (Manifest, service worker, install prompt, Hindi/English toggle, disclaimer)
 - [ ] **Stage 6: Stretch features** (Adherence weekly charts, offline queue, caregiver missed dose alerts)
 - [ ] **Stage 7: Hardening and demo preparation** (Database seed script, manual checklist, keep-awake pinger)
