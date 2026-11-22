@@ -3,6 +3,7 @@ import type { Patient } from '@/types';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { isLocalOnlyPatientUrl, patientAccessUrl } from '@/lib/patientAccess';
 
 interface PatientCardProps {
   patient: Patient;
@@ -25,7 +26,7 @@ export function PatientCard({
   onDelete,
   onRegenerate,
 }: PatientCardProps) {
-  const patientUrl = `${window.location.origin}/p/${patient.access_token}`;
+  const patientUrl = patientAccessUrl(patient.access_token);
 
   return (
     <article className={`overflow-hidden rounded-card border bg-surface shadow-card ${isActive ? 'border-brand ring-1 ring-brand/20' : 'border-surface-border'}`}>
@@ -53,10 +54,11 @@ export function PatientCard({
         <p className="text-xs font-semibold text-ink-muted">Patient access link</p>
         <div className="mt-2 flex gap-2">
           <input readOnly aria-label={`Patient access link for ${patient.name}`} value={patientUrl} className="min-w-0 flex-1 rounded-btn border border-surface-border bg-surface px-2.5 py-2 text-xs text-ink-muted" />
-          <a href={`/p/${patient.access_token}`} target="_blank" rel="noreferrer" aria-label={`Open patient view for ${patient.name}`} title="Open patient view" className="grid h-10 w-10 shrink-0 place-items-center rounded-btn border border-surface-border bg-surface text-ink-muted hover:text-brand">
+          <a href={patientUrl} target="_blank" rel="noreferrer" aria-label={`Open patient view for ${patient.name}`} title="Open patient view" className="grid h-10 w-10 shrink-0 place-items-center rounded-btn border border-surface-border bg-surface text-ink-muted hover:text-brand">
             <ExternalLink aria-hidden="true" size={16} />
           </a>
         </div>
+        {isLocalOnlyPatientUrl() && <p className="mt-2 text-xs leading-5 text-amber-800">This link uses localhost and only works on this computer. Open DawaReminder using your computer&apos;s network address before sharing it to a phone.</p>}
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 p-5 pt-4">

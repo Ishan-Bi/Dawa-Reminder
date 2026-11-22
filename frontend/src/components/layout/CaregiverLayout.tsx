@@ -13,6 +13,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { apiRequest } from '@/lib/api';
+import { patientAccessUrl } from '@/lib/patientAccess';
 
 function cn(...inputs: Parameters<typeof clsx>) {
   return twMerge(clsx(inputs));
@@ -184,7 +185,7 @@ export function CaregiverLayout({
           <div className="flex items-center gap-2">
             {activePatient && (
               <a
-                href={`/p/${activePatient.access_token}`}
+                href={patientAccessUrl(activePatient.access_token)}
                 target="_blank"
                 rel="noreferrer"
                 className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-softer text-brand hover:bg-brand-soft rounded-pill text-xs font-semibold border border-brand-soft transition-colors duration-[150ms]"

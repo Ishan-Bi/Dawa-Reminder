@@ -3,6 +3,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Patient } from '@/types';
 import { Copy, Check, ExternalLink } from 'lucide-react';
+import { isLocalOnlyPatientUrl, patientAccessUrl } from '@/lib/patientAccess';
 
 interface ShareQrModalProps {
   isOpen: boolean;
@@ -15,7 +16,7 @@ export function ShareQrModal({ isOpen, onClose, patient }: ShareQrModalProps) {
 
   if (!patient) return null;
 
-  const patientUrl = `${window.location.origin}/p/${patient.access_token}`;
+  const patientUrl = patientAccessUrl(patient.access_token);
   // Generate QR code SVG using free fast QR code API
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
     patientUrl
@@ -30,6 +31,7 @@ export function ShareQrModal({ isOpen, onClose, patient }: ShareQrModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Access Link for ${patient.name}`}>
       <div className="text-center space-y-6">
+        {isLocalOnlyPatientUrl() && <p role="note" className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-left text-sm leading-6 text-amber-900">This link currently points to localhost, so it will only open on this computer. For a patient&apos;s phone, open DawaReminder using the computer&apos;s network address (for example, <strong>http://192.168.1.25:3000</strong>) and create/share the link again.</p>}
         <div className="space-y-2">
           <p className="text-sm text-gray-600">
             Open this link on <span className="font-bold text-gray-900">{patient.name}&apos;s</span> phone or scan the QR code.
