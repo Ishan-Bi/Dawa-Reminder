@@ -3,24 +3,21 @@ import { Pill } from 'lucide-react';
 
 export function PatientLayout({ children }: { children: ReactNode }) {
   return (
-    <div lang="en" className="flex min-h-screen flex-col bg-surface-bg text-ink">
-      <header className="border-b border-surface-border bg-surface px-4 py-4 sm:px-6">
-        <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-card bg-brand text-white">
-            <Pill aria-hidden="true" size={21} />
+    <div lang="en" className="min-h-screen bg-[#F0F8F5] text-[#253B35]">
+      <header className="px-4 pt-4 sm:px-6 sm:pt-6">
+        <div className="mx-auto flex w-full max-w-3xl items-center gap-3 rounded-2xl border border-white/80 bg-white/75 px-4 py-3 shadow-sm backdrop-blur">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#54B5A4] text-white">
+            <Pill aria-hidden="true" size={19} />
           </span>
           <div>
-            <p className="font-heading text-base font-bold leading-tight text-ink">DawaReminder</p>
-            <p className="text-sm leading-tight text-ink-muted">Medication reminders</p>
+            <p className="font-heading text-sm font-bold leading-tight text-[#263C35]">DawaReminder</p>
+            <p className="text-xs leading-tight text-[#7B918A]">Your daily medicine plan</p>
           </div>
         </div>
       </header>
-      <main aria-label="Medication schedule" className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <main aria-label="Medication schedule" className="mx-auto w-full max-w-3xl px-4 py-5 sm:px-6 sm:py-7">
         {children}
       </main>
-      <footer className="border-t border-surface-border px-4 py-4 text-center text-sm text-ink-muted sm:px-6">
-        Reminder tool only, not medical advice.
-      </footer>
     </div>
   );
 }

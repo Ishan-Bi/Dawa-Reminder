@@ -6,24 +6,24 @@
 @layer base {
   :root {
     /* Brand */
-    --brand:          #167C53;
-    --brand-hover:    #0D4E34;
-    --brand-light:    #D9F0E2;
-    --brand-soft:     #C5E7D1;
-    --brand-softer:   #E9F5EF;
-    --brand-text:     #0D4E34;
-    --brand-muted:    #62A982;
+    --brand:          #4BAE9A;
+    --brand-hover:    #368F7E;
+    --brand-light:    #D5F0E9;
+    --brand-soft:     #BCE5DA;
+    --brand-softer:   #E9F7F3;
+    --brand-text:     #287666;
+    --brand-muted:    #62B6A3;
 
     /* Surfaces */
     --surface:        #FFFFFF;
-    --surface-bg:     #FAF8F5;
-    --surface-border: #E7E5E4;
-    --surface-hover:  #F5F5F4;
+    --surface-bg:     #F2F8F5;
+    --surface-border: #DDEBE5;
+    --surface-hover:  #F3F9F6;
 
     /* Ink */
-    --ink:            #1C1917;
-    --ink-muted:      #78716C;
-    --ink-subtle:     #A8A29E;
+    --ink:            #263A32;
+    --ink-muted:      #708278;
+    --ink-subtle:     #91A199;
 
     /* Status */
     --status-taken-bg:     #DCFCE7;

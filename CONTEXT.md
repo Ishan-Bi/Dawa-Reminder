@@ -45,7 +45,8 @@
 - Frontend production build passes after Stage 5. PWA icon assets, manifest, service worker output, and browser install prompt are configured; iPhone home-screen installation still requires manual Safari verification on a real device.
 - Public landing page now leads with caregiver and patient workflows; technical backend status is available in a collapsed details panel. Production TypeScript/Vite/PWA build passes after this UI update.
 - Visible frontend copy and branding are English-only per user preference; the caregiver patient form defaults the stored language to English.
-- Caregiver dashboard now prioritizes today's patient plan, next pending dose, key dose counts, and quick actions; empty-day adherence is shown as unavailable instead of 100%.
+- Caregiver dashboard uses a mint and white visual system with live dose counts, today's schedule, next reminder, and daily progress; it does not invent analytics when no doses exist.
+- Patient view follows the supplied medication reminder references with a weekly date strip, doses grouped by time of day, large Taken/Skip actions, and optional read-aloud instructions.
 - Caregiver navigation exposes Dashboard, Patients, Medications, and Dose history; patient switching is available from desktop and mobile layouts. The responsive patient view uses large, clear dose actions. Medication editing updates the medication and its schedule through the existing API.
 - The frontend production build passes after the caregiver and patient UI integration. The UI uses live API data and avoids adding placeholder analytics or sample medication records.
 - Expired session records are removed when used; periodic session cleanup is not configured.

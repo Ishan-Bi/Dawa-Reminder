@@ -1,17 +1,40 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Dose } from '@/types';
+import type { Dose } from '@/types';
 import { apiRequest } from '@/lib/api';
-import { Check, X, Volume2, ShieldCheck, Heart, AlertCircle } from 'lucide-react';
+import { Check, CheckCircle2, ChevronLeft, ChevronRight, Clock3, Volume2, X, AlertCircle, Pill } from 'lucide-react';
 import { PatientLayout } from '@/components/layout/PatientLayout';
 
 interface PatientTodayData {
-  patient: {
-    id: number;
-    name: string;
-  };
+  patient: { id: number; name: string };
   doses: Dose[];
   date: string;
+}
+
+function getTime(value: string) {
+  return new Date(value).toLocaleTimeString('en-IN', {
+    timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true,
+  });
+}
+
+function getWeek() {
+  const now = new Date();
+  const local = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+  const start = new Date(local);
+  start.setDate(local.getDate() - ((local.getDay() + 6) % 7));
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    return { key: date.toDateString(), day: date.toLocaleDateString('en-IN', { weekday: 'short' }), date: date.getDate(), today: date.toDateString() === local.toDateString() };
+  });
+}
+
+function dayPart(value: string) {
+  const hour = Number(value.slice(0, 2));
+  if (hour < 11) return 'Morning';
+  if (hour < 16) return 'Afternoon';
+  if (hour < 20) return 'Evening';
+  return 'Night';
 }
 
 export function PatientView() {
@@ -20,38 +43,32 @@ export function PatientView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchTodayDoses = async () => {
     if (!token) return;
     try {
-      const res = await apiRequest<PatientTodayData>(`/p/${token}/today`);
-      setData(res);
-    } catch (err: any) {
-      setError(err.message || 'Invalid or expired link. Please ask your family member for a new link.');
+      const result = await apiRequest<PatientTodayData>(`/p/${token}/today`);
+      setData(result);
+      setError(null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'This link may have expired. Please ask your family member for an updated link.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    document.documentElement.lang = 'en';
-  }, []);
+  useEffect(() => { document.documentElement.lang = 'en'; }, []);
+  useEffect(() => { void fetchTodayDoses(); }, [token]);
 
-  useEffect(() => {
-    fetchTodayDoses();
-  }, [token]);
-
-  // Voice synthesis read-out helper
-  const speakText = (text: string) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-    }
+  const speak = (dose: Dose) => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const phrase = `At ${getTime(dose.scheduled_at)}, ${dose.medication_name}, ${dose.medication_instructions || 'your scheduled dose'}. ${dose.food_instruction === 'before_food' ? 'Before food.' : dose.food_instruction === 'after_food' ? 'After food.' : ''}`;
+    const utterance = new SpeechSynthesisUtterance(phrase);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.88;
+    window.speechSynthesis.speak(utterance);
   };
 
   const handleAction = async (dose: Dose, action: 'taken' | 'skipped') => {
@@ -61,231 +78,75 @@ export function PatientView() {
     try {
       await apiRequest(`/p/${token}/doses/${dose.id}/${action}`, {
         method: 'POST',
-        body: JSON.stringify({
-          client_event_id: `cli_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        }),
+        body: JSON.stringify({ client_event_id: `cli_${Date.now()}_${Math.random().toString(36).slice(2, 7)}` }),
       });
-
-      const message = action === 'taken'
-        ? `${dose.medication_name} marked as taken. Well done!`
-        : `${dose.medication_name} skipped.`;
-
-      setSuccessMessage(message);
-      speakText(message);
-      fetchTodayDoses();
-
-      setTimeout(() => {
-        setSuccessMessage(null);
-      }, 4000);
-    } catch (err: any) {
-      setActionError(err.message || 'Could not update this dose. Please try again.');
+      await fetchTodayDoses();
+    } catch (cause) {
+      setActionError(cause instanceof Error ? cause.message : 'Could not update this dose. Please try again.');
     } finally {
       setActionLoadingId(null);
     }
   };
 
-  if (loading) {
+  if (loading || error || !data) {
     return (
       <PatientLayout>
-        <div className="flex min-h-[55vh] items-center justify-center p-6 text-center">
-          <div role="status" className="space-y-4">
-            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-            <p className="text-xl font-bold text-ink">Loading your schedule...</p>
-          </div>
+        <div className="grid min-h-[60vh] place-items-center px-4">
+          {loading ? <div role="status" className="text-center"><div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-brand border-t-transparent" /><p className="mt-4 text-lg font-semibold text-ink">Loading today&apos;s schedule…</p></div> : <section role="alert" className="max-w-md rounded-3xl border border-status-missed-border bg-white p-8 text-center shadow-card"><AlertCircle className="mx-auto h-12 w-12 text-status-missed" /><h1 className="mt-3 text-2xl font-bold text-ink">Link unavailable</h1><p className="mt-2 text-ink-muted">{error || 'Please request an updated patient link.'}</p></section>}
         </div>
       </PatientLayout>
     );
   }
 
-  if (error || !data) {
-    return (
-      <PatientLayout>
-        <div className="flex min-h-[55vh] items-center justify-center p-6 text-center">
-          <div role="alert" className="w-full max-w-md space-y-4 rounded-card border border-status-missed-border bg-surface p-8 shadow-card">
-            <AlertCircle className="mx-auto h-12 w-12 text-status-missed" aria-hidden="true" />
-            <h1 className="text-2xl font-bold text-ink">Link invalid or expired</h1>
-            <p className="text-base text-ink-muted">{error || 'Please request an updated access link from your caregiver.'}</p>
-          </div>
-        </div>
-      </PatientLayout>
-    );
-  }
-
-  const t = {
-    title: "Today's medicines",
-    empty: 'You have no scheduled doses today.',
-    beforeFood: 'Before food',
-    afterFood: 'After food',
-    anyFood: 'Any time',
-    takenBtn: 'I took this',
-    skipBtn: 'Skip',
-    alreadyTaken: 'Taken',
-    alreadySkipped: 'Skipped',
-    speakBtn: 'Read aloud',
-  };
+  const week = getWeek();
+  const groups = ['Morning', 'Afternoon', 'Evening', 'Night'].map((label) => ({ label, doses: data.doses.filter((dose) => dayPart(dose.scheduled_at.slice(11, 16)) === label) })).filter((group) => group.doses.length > 0);
+  const finishedCount = data.doses.filter((dose) => dose.status !== 'pending').length;
+  const todayLabel = new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'long' });
 
   return (
     <PatientLayout>
-      <div className="space-y-6">
-        <section className="flex flex-col gap-4 rounded-3xl bg-brand px-6 py-6 text-white shadow-card sm:flex-row sm:items-end sm:justify-between sm:px-8">
-          <div>
-            <p className="text-sm font-semibold text-white/80">Today for</p>
-            <h1 className="mt-1 text-3xl font-extrabold text-white sm:text-4xl">{data.patient.name}</h1>
-            <p className="mt-1 text-lg font-semibold text-white">{t.title}</p>
+      <div className="space-y-6 pb-4">
+        <section className="overflow-hidden rounded-[2rem] bg-[#54B5A4] px-5 py-5 text-white shadow-[0_18px_45px_-28px_rgba(24,105,91,.55)] sm:px-8 sm:py-7">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/20 text-lg font-bold">{data.patient.name.slice(0, 1).toUpperCase()}</div>
+              <div className="min-w-0"><p className="text-sm text-white/80">Your medicine plan</p><h1 className="truncate text-2xl font-bold sm:text-3xl">Hello, {data.patient.name}</h1></div>
+            </div>
+            <span className="hidden rounded-2xl bg-white/15 px-4 py-2 text-sm font-semibold sm:block">{todayLabel}</span>
           </div>
-          <span className="w-fit rounded-pill border border-white/25 bg-white/10 px-4 py-2 text-base font-bold text-white">
-            {new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'short' })}
-          </span>
+          <div className="mt-6 flex items-end justify-between gap-3">
+            <div><p className="text-sm font-medium text-white/80">Today&apos;s medicines</p><p className="mt-1 text-3xl font-extrabold">{data.doses.length} <span className="text-lg font-semibold text-white/80">{data.doses.length === 1 ? 'dose' : 'doses'}</span></p></div>
+            <p className="text-right text-sm font-semibold text-white/90">{finishedCount} of {data.doses.length} recorded</p>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/25"><div className="h-full rounded-full bg-white transition-all" style={{ width: `${data.doses.length ? (finishedCount / data.doses.length) * 100 : 0}%` }} /></div>
         </section>
 
-      {/* Floating Success Banner */}
-      {successMessage && (
-        <div role="status" aria-live="polite" className="my-4 p-5 bg-[#E6F9F0] border-2 border-[#167C53] rounded-2xl text-[#0E6245] flex items-center gap-3">
-          <ShieldCheck className="w-8 h-8 text-[#167C53] shrink-0" />
-          <p className="text-xl font-bold">{successMessage}</p>
-        </div>
-      )}
+        <section aria-label="This week" className="rounded-[1.75rem] border border-[#D9ECE8] bg-white px-3 py-4 shadow-sm sm:px-5">
+          <div className="mb-3 flex items-center justify-between px-1"><div><h2 className="font-bold text-[#263A35]">Your schedule</h2><p className="text-sm text-[#78918A]">{todayLabel}</p></div><div className="flex gap-1 text-[#7B9991]" aria-hidden="true"><ChevronLeft size={18} /><ChevronRight size={18} /></div></div>
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-2">{week.map((day) => <div key={day.key} aria-current={day.today ? 'date' : undefined} className={`flex min-h-[68px] flex-col items-center justify-center rounded-2xl border text-sm ${day.today ? 'border-[#54B5A4] bg-[#54B5A4] font-bold text-white shadow-sm' : 'border-[#E6EFED] bg-[#FAFCFB] text-[#658078]'}`}><span className="text-xs">{day.day}</span><span className="mt-1 text-lg">{day.date}</span>{day.today && <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider">Today</span>}</div>)}</div>
+        </section>
 
-      {/* Doses List — High Contrast, Large Type */}
-      <section aria-label="Today's doses" className="space-y-4">
+        {actionError && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 font-semibold text-red-800">{actionError}</p>}
 
         {data.doses.length === 0 ? (
-          <div className="space-y-3 rounded-3xl border border-surface-border bg-surface px-6 py-10 text-center shadow-card">
-            <Heart className="mx-auto h-14 w-14 text-brand" aria-hidden="true" />
-            <p className="text-xl font-bold text-ink">{t.empty}</p>
-          </div>
+          <section className="rounded-[1.75rem] border border-[#D9ECE8] bg-white px-6 py-12 text-center shadow-sm"><span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#E9F7F4] text-[#54A999]"><CheckCircle2 size={30} /></span><h2 className="mt-4 text-xl font-bold text-[#263A35]">You&apos;re all set for today</h2><p className="mt-2 text-[#78918A]">There are no doses scheduled today.</p></section>
         ) : (
-          <div className="space-y-6">
-            {data.doses.map((dose) => {
-              const isTaken = dose.status === 'taken';
-              const isSkipped = dose.status === 'skipped';
-              const scheduledTime = new Date(dose.scheduled_at).toLocaleTimeString('en-IN', {
-                timeZone: 'Asia/Kolkata',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true,
-              });
-
-              const foodInstruction =
-                dose.food_instruction === 'before_food'
-                  ? t.beforeFood
-                  : dose.food_instruction === 'after_food'
-                  ? t.afterFood
-                  : t.anyFood;
-
-              return (
-                <article
-                  key={dose.id}
-                  className={`rounded-3xl border-2 bg-surface p-5 shadow-card transition sm:p-7 space-y-5 ${
-                    isTaken
-                      ? 'border-[#167C53] bg-emerald-50/30'
-                      : isSkipped
-                      ? 'border-gray-300 opacity-60'
-                      : 'border-gray-300 hover:border-[#167C53]'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      {dose.medication_photo ? (
-                        <img
-                          src={dose.medication_photo}
-                          alt={dose.medication_name}
-                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-gray-200 shrink-0"
-                        />
-                      ) : (
-                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[#E9F5EF] text-[#167C53] flex items-center justify-center font-black text-3xl shrink-0">
-                          DR
-                        </div>
-                      )}
-                      <div className="space-y-1">
-                        <h3 className="text-2xl sm:text-3xl font-black text-gray-900">
-                          {dose.medication_name}
-                        </h3>
-                        {dose.medication_strength && (
-                          <p className="text-lg font-bold text-gray-600">
-                            {dose.medication_strength}
-                          </p>
-                        )}
-                        <p className="text-base font-semibold text-gray-500">
-                          {dose.medication_instructions || '1 dose'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Voice Read-out Button */}
-                    <button
-                      type="button"
-                      aria-label={t.speakBtn}
-                      onClick={() =>
-                        speakText(
-                          `At ${scheduledTime}, take ${dose.medication_name} ${dose.medication_strength || ''}, ${foodInstruction}`
-                        )
-                      }
-                      title={t.speakBtn}
-                      className="p-3 bg-gray-100 hover:bg-[#E9F5EF] text-[#167C53] rounded-2xl shrink-0 transition"
-                    >
-                      <Volume2 className="w-7 h-7" />
-                    </button>
-                  </div>
-
-                  {/* Badges: Time & Food instruction in large text */}
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="px-4 py-2 bg-[#F8FAF9] border-2 border-gray-200 text-gray-900 rounded-2xl text-lg font-black tracking-wide">
-                      ⏰ {scheduledTime}
-                    </span>
-                    <span
-                      className={`px-4 py-2 rounded-2xl text-lg font-black border-2 ${
-                        dose.food_instruction === 'before_food'
-                          ? 'bg-[#FFF4D6] border-amber-300 text-[#B45309]'
-                          : 'bg-[#E6F9F0] border-emerald-300 text-[#0E6245]'
-                      }`}
-                    >
-                      🍲 {foodInstruction}
-                    </span>
-                  </div>
-
-                  {/* Huge Action Buttons (48px+ Touch targets for elderly) */}
-                  {isTaken ? (
-                    <div className="w-full py-4 bg-[#E6F9F0] border-2 border-[#167C53] text-[#0E6245] rounded-2xl font-black text-2xl text-center flex items-center justify-center gap-2">
-                      <Check className="w-8 h-8 stroke-[3]" />
-                      <span>{t.alreadyTaken}</span>
-                    </div>
-                  ) : isSkipped ? (
-                    <div className="w-full py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold text-xl text-center">
-                      {t.alreadySkipped}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-4 pt-2">
-                      <button
-                        type="button"
-                        aria-label={`${t.takenBtn}: ${dose.medication_name}`}
-                        onClick={() => handleAction(dose, 'taken')}
-                        disabled={actionLoadingId === dose.id}
-                        className="min-h-16 py-4 bg-[#167C53] hover:bg-[#0D4E34] text-white rounded-2xl font-black text-xl sm:text-2xl flex items-center justify-center gap-2 transition active:scale-95 shadow-md"
-                      >
-                        <Check className="w-7 h-7 stroke-[3]" />
-                        <span>{t.takenBtn}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        aria-label={`${t.skipBtn}: ${dose.medication_name}`}
-                        onClick={() => handleAction(dose, 'skipped')}
-                        disabled={actionLoadingId === dose.id}
-                        className="min-h-16 py-4 bg-white hover:bg-gray-100 border-2 border-gray-300 text-gray-700 rounded-2xl font-bold text-lg sm:text-xl flex items-center justify-center gap-2 transition active:scale-95"
-                      >
-                        <X className="w-6 h-6 stroke-[3]" />
-                        <span>{t.skipBtn}</span>
-                      </button>
-                    </div>
-                  )}
-                </article>
-              );
-            })}
-          </div>
+          <div className="space-y-5">{groups.map((group) => <section key={group.label} className="space-y-3"><h2 className="px-1 text-lg font-bold text-[#263A35]">{group.label}</h2>{group.doses.map((dose) => {
+            const taken = dose.status === 'taken';
+            const skipped = dose.status === 'skipped';
+            const completed = taken || skipped;
+            return <article key={dose.id} className={`rounded-[1.65rem] border p-4 shadow-sm transition sm:p-5 ${taken ? 'border-[#A9DBD2] bg-[#F0FAF8]' : skipped ? 'border-[#E7EAE9] bg-[#F7F8F8]' : 'border-[#D6EAE5] bg-[#EAF8F5]'}`}>
+              <div className="flex items-start gap-3 sm:gap-4">
+                {dose.medication_photo ? <img src={dose.medication_photo} alt="" className="h-14 w-14 shrink-0 rounded-2xl border border-white object-cover sm:h-16 sm:w-16" /> : <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white text-[#56AE9F] sm:h-16 sm:w-16"><Pill size={25} /></span>}
+                <div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><h3 className="truncate text-lg font-bold text-[#253B35] sm:text-xl">{dose.medication_name}</h3><p className="mt-0.5 text-sm font-medium text-[#718A83]">{dose.medication_strength || dose.medication_instructions || 'Scheduled dose'}</p></div><button type="button" aria-label={`Read ${dose.medication_name} instructions aloud`} onClick={() => speak(dose)} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-[#4B9E90] hover:bg-[#D8F0EB]"><Volume2 size={19} /></button></div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2"><span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-bold text-[#38554D]"><Clock3 size={15} />{getTime(dose.scheduled_at)}</span>{dose.food_instruction && dose.food_instruction !== 'any' && <span className="rounded-full bg-white/80 px-3 py-1.5 text-sm font-semibold text-[#66847B]">{dose.food_instruction === 'before_food' ? 'Before food' : 'After food'}</span>}{dose.medication_purpose && <span className="rounded-full bg-white/80 px-3 py-1.5 text-sm font-semibold text-[#66847B]">{dose.medication_purpose}</span>}</div>
+                </div>
+              </div>
+              {completed ? <div className={`mt-4 flex min-h-12 items-center justify-center gap-2 rounded-2xl font-bold ${taken ? 'bg-[#D8F1EB] text-[#287B6C]' : 'bg-[#ECEFEE] text-[#65746F]'}`}>{taken ? <CheckCircle2 size={20} /> : <X size={19} />}{taken ? 'Taken' : 'Skipped'}</div> : <div className="mt-4 grid grid-cols-[1.3fr_1fr] gap-2.5"><button type="button" disabled={actionLoadingId === dose.id} onClick={() => void handleAction(dose, 'taken')} className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-[#51B4A2] px-3 text-base font-bold text-white shadow-sm transition hover:bg-[#3D9F8E] disabled:opacity-60 sm:text-lg"><Check size={21} strokeWidth={3} />{actionLoadingId === dose.id ? 'Saving…' : 'Taken'}</button><button type="button" disabled={actionLoadingId === dose.id} onClick={() => void handleAction(dose, 'skipped')} className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-[#E3A8A2] bg-white px-3 text-base font-semibold text-[#C76D67] transition hover:bg-[#FFF4F2] disabled:opacity-60 sm:text-lg"><X size={20} />Skip</button></div>}
+            </article>;
+          })}</section>)}</div>
         )}
-        {actionError && <p role="alert" className="rounded-card border border-status-missed-border bg-status-missed-bg px-4 py-3 text-base font-semibold text-status-missed-text">{actionError}</p>}
-      </section>
+        <p className="px-2 text-center text-xs leading-relaxed text-[#82958F]">Follow the directions given by your healthcare professional. This reminder does not replace medical advice.</p>
       </div>
     </PatientLayout>
   );

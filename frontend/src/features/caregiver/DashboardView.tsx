@@ -1,20 +1,8 @@
-import { useState } from 'react';
-import { Patient, Dose } from '@/types';
-import { Badge } from '@/components/ui/Badge';
+import { useMemo, useState } from 'react';
+import type { Patient, Dose } from '@/types';
 import { Button } from '@/components/ui/Button';
-import { StatCard } from '@/components/domain/StatCard';
 import { apiRequest } from '@/lib/api';
-import {
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  Pill,
-  Calendar,
-  Plus,
-  QrCode,
-  Check,
-  X,
-} from 'lucide-react';
+import { AlertCircle, ArrowUpRight, CalendarDays, Check, CheckCircle2, Clock3, Heart, Pill, Plus, QrCode, SkipForward, Sparkles, X } from 'lucide-react';
 
 interface DashboardViewProps {
   patient: Patient | null;
@@ -25,270 +13,95 @@ interface DashboardViewProps {
   onOpenAddPatient: () => void;
 }
 
-export function DashboardView({
-  patient,
-  doses,
-  onRefreshDoses,
-  onOpenAddMedication,
-  onOpenQrModal,
-  onOpenAddPatient,
-}: DashboardViewProps) {
+const timeLabel = (value: string) => new Date(value).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
+
+export function DashboardView({ patient, doses, onRefreshDoses, onOpenAddMedication, onOpenQrModal, onOpenAddPatient }: DashboardViewProps) {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const counts = useMemo(() => ({
+    taken: doses.filter((dose) => dose.status === 'taken').length,
+    pending: doses.filter((dose) => dose.status === 'pending').length,
+    skipped: doses.filter((dose) => dose.status === 'skipped').length,
+    missed: doses.filter((dose) => dose.status === 'missed').length,
+  }), [doses]);
+  const sorted = useMemo(() => [...doses].sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at)), [doses]);
+  const nextDose = sorted.find((dose) => dose.status === 'pending');
+  const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', hourCycle: 'h23' }).format(new Date()));
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const date = new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'long' });
 
-  if (!patient) {
-    return (
-      <div className="bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-sm space-y-4 max-w-xl mx-auto my-12">
-        <div className="w-16 h-16 bg-[#E9F5EF] text-[#167C53] rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold">
-          DR
-        </div>
-        <h2 className="text-2xl font-bold text-gray-800">Welcome to DawaReminder</h2>
-        <p className="text-sm text-gray-600 leading-relaxed">
-          Start by adding a family member or elderly patient. You will configure their medication routine once, and they will simply follow it with big visual buttons.
-        </p>
-        <Button onClick={onOpenAddPatient} size="lg" className="mt-4">
-          <Plus className="w-5 h-5" /> Add Your First Patient
-        </Button>
-      </div>
-    );
-  }
-
-  // Calculate metrics
-  const totalDoses = doses.length;
-  const takenDoses = doses.filter((d) => d.status === 'taken').length;
-  const pendingDoses = doses.filter((d) => d.status === 'pending').length;
-  const missedDoses = doses.filter((d) => d.status === 'missed').length;
-  const adherenceRate = totalDoses > 0 ? Math.round((takenDoses / totalDoses) * 100) : null;
-  const pendingQueue = doses
-    .filter((dose) => dose.status === 'pending')
-    .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime());
-  const now = Date.now();
-  const nextDose = pendingQueue.find((dose) => new Date(dose.scheduled_at).getTime() >= now) ?? pendingQueue[0] ?? null;
-
-  // Format scheduled_at to IST HH:MM display
-  const formatTime = (isoString: string) => {
+  const markDose = async (dose: Dose, status: 'taken' | 'skipped') => {
+    setUpdatingId(dose.id);
+    setError(null);
     try {
-      const dt = new Date(isoString);
-      return dt.toLocaleTimeString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-      });
-    } catch {
-      return isoString;
-    }
-  };
-
-  const handleUpdateStatus = async (doseId: number, status: 'taken' | 'skipped') => {
-    setUpdatingId(doseId);
-    setActionError(null);
-    try {
-      await apiRequest(`/doses/${doseId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status, acted_by: 'caregiver' }),
-      });
-      onRefreshDoses();
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Could not update this dose. Please try again.');
+      await apiRequest(`/doses/${dose.id}`, { method: 'PATCH', body: JSON.stringify({ status, acted_by: 'caregiver' }) });
+      await onRefreshDoses();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not update this dose. Please try again.');
     } finally {
       setUpdatingId(null);
     }
   };
 
+  if (!patient) return (
+    <section className="mx-auto my-8 max-w-2xl rounded-[2rem] border border-[#DBEAE4] bg-white px-6 py-12 text-center shadow-[0_18px_60px_-42px_rgba(29,71,55,.3)] sm:px-12">
+      <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#E7F4EC] text-[#328663]"><Heart size={28} /></span>
+      <h1 className="mt-5 text-3xl font-bold tracking-tight text-[#21382D]">Your family care space</h1>
+      <p className="mx-auto mt-3 max-w-md leading-7 text-[#71847A]">Add a patient to start building a clear, shared medication routine.</p>
+      <Button onClick={onOpenAddPatient} size="lg" className="mt-6"><Plus size={18} /> Add a patient</Button>
+    </section>
+  );
+
+  const completion = doses.length ? Math.round((counts.taken / doses.length) * 100) : 0;
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      <section className="overflow-hidden rounded-3xl border border-surface-border bg-surface p-5 shadow-card sm:p-7">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand">Care overview</p>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-ink">Today for {patient.name}</h2>
-            <p className="mt-2 text-sm text-ink-muted">
-              {new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'long' })}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" size="md" onClick={onOpenQrModal}>
-              <QrCode aria-hidden="true" className="h-4 w-4" /> Share patient link
-            </Button>
-            <Button size="md" onClick={onOpenAddMedication}>
-              <Plus aria-hidden="true" className="h-4 w-4" /> Add medication
-            </Button>
-          </div>
-        </div>
-        <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-brand-soft bg-brand-softer p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-surface text-brand"><Clock aria-hidden="true" className="h-5 w-5" /></span>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-brand-text">Next pending dose</p>
-              {nextDose ? (
-                <p className="mt-0.5 font-bold text-ink">{nextDose.medication_name} {nextDose.medication_strength ? `· ${nextDose.medication_strength}` : ''}</p>
-              ) : (
-                <p className="mt-0.5 font-bold text-ink">No pending doses today</p>
-              )}
-            </div>
-          </div>
-          {nextDose && <p className="text-xl font-extrabold tabular-nums text-brand sm:text-2xl">{formatTime(nextDose.scheduled_at)}</p>}
-        </div>
+    <div className="space-y-6 pb-6">
+      <section className="flex flex-col gap-5 rounded-[2rem] border border-[#E1ECE6] bg-gradient-to-br from-white via-white to-[#EEF8F3] p-5 shadow-[0_18px_60px_-46px_rgba(29,71,55,.28)] sm:p-7 lg:flex-row lg:items-center lg:justify-between">
+        <div><p className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#4D9B76]"><Sparkles size={15} /> Family care overview</p><h1 className="mt-2 text-3xl font-bold tracking-tight text-[#20362B] sm:text-4xl">{greeting}, {patient.name}</h1><p className="mt-2 flex items-center gap-2 text-sm text-[#78887F]"><CalendarDays size={16} />{date}</p></div>
+        <div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={onOpenQrModal}><QrCode size={16} /> Share patient view</Button><Button onClick={onOpenAddMedication}><Plus size={17} /> Add medication</Button></div>
       </section>
 
-      {actionError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{actionError}</p>}
-
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard icon={CheckCircle2} label="Taken" value={takenDoses} iconColor="text-status-taken" iconBg="bg-status-taken-bg" />
-        <StatCard icon={Clock} label="Pending" value={pendingDoses} iconColor="text-status-pending" iconBg="bg-status-pending-bg" />
-        <StatCard icon={AlertTriangle} label="Missed" value={missedDoses} iconColor="text-status-missed" iconBg="bg-status-missed-bg" />
-        <StatCard icon={Calendar} label="Adherence today" value={adherenceRate === null ? '—' : adherenceRate} unit={adherenceRate === null ? undefined : '%'} trend="neutral" trendLabel={totalDoses ? `${takenDoses} of ${totalDoses} doses` : 'No doses yet'} />
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {[
+          { label: 'Scheduled today', value: doses.length, icon: Pill, tone: 'bg-[#E9F4EF] text-[#438866]' },
+          { label: 'Taken', value: counts.taken, icon: CheckCircle2, tone: 'bg-[#E7F5EF] text-[#338365]' },
+          { label: 'Upcoming', value: counts.pending, icon: Clock3, tone: 'bg-[#FFF5DF] text-[#AF8135]' },
+          { label: 'Missed', value: counts.missed, icon: AlertCircle, tone: 'bg-[#FFF0ED] text-[#C87468]' },
+        ].map(({ label, value, icon: Icon, tone }) => <article key={label} className="rounded-[1.5rem] border border-[#E5EDE8] bg-white p-4 shadow-[0_10px_35px_-30px_rgba(30,70,53,.3)] sm:p-5"><span className={`grid h-10 w-10 place-items-center rounded-xl ${tone}`}><Icon size={19} /></span><p className="mt-4 text-2xl font-bold text-[#26392F]">{value}</p><p className="mt-0.5 text-xs font-medium text-[#829087] sm:text-sm">{label}</p></article>)}
       </div>
 
-      {/* Main Routine & Timeline (Pharmax style) */}
-      <div className="space-y-6 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm md:p-8">
-        <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-          <div className="flex items-center gap-2 text-gray-800 font-bold text-lg">
-            <Calendar className="w-5 h-5 text-[#167C53]" />
-            <span>Today&apos;s Schedule</span>
-          </div>
-          <span className="text-xs font-medium text-gray-500 bg-gray-50 px-3 py-1 rounded-full border">
-            {new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
-          </span>
-        </div>
+      {error && <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800">{error}</p>}
 
-        {doses.length === 0 ? (
-          <div className="text-center py-12 space-y-3">
-            <Pill className="w-12 h-12 text-gray-300 mx-auto" />
-            <p className="text-gray-600 font-semibold">No doses scheduled for today</p>
-            <p className="text-xs text-gray-400 max-w-sm mx-auto">
-              Add medications and set their daily schedule (e.g. Morning 08:00 AM, Night 09:00 PM) to generate doses automatically.
-            </p>
-            <Button size="sm" onClick={onOpenAddMedication} className="mt-2">
-              <Plus className="w-4 h-4" /> Add Medication
-            </Button>
-          </div>
-        ) : (
-          <div className="relative pl-6 md:pl-8 space-y-6 before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-gray-200">
-            {doses.map((dose) => {
-              const isTaken = dose.status === 'taken';
-              const isMissed = dose.status === 'missed';
-              const isSkipped = dose.status === 'skipped';
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(280px,.8fr)]">
+        <section className="overflow-hidden rounded-[1.75rem] border border-[#E0EBE5] bg-white shadow-[0_16px_55px_-40px_rgba(30,70,53,.32)]">
+          <div className="flex items-center justify-between gap-3 border-b border-[#EDF2EE] px-5 py-4 sm:px-6"><div><h2 className="text-lg font-bold text-[#283A30]">Today&apos;s schedule</h2><p className="mt-0.5 text-sm text-[#87948B]">Dose updates for {patient.name}</p></div><span className="rounded-full bg-[#EFF7F2] px-3 py-1.5 text-xs font-semibold text-[#58866C]">{date}</span></div>
+          {sorted.length === 0 ? <div className="px-6 py-12 text-center"><span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#EEF7F2] text-[#579979]"><Pill size={25} /></span><h3 className="mt-4 font-bold text-[#2B3D32]">No doses on today&apos;s schedule</h3><p className="mt-1 text-sm text-[#839087]">Add medication and its prescribed dose times to see the routine here.</p><Button onClick={onOpenAddMedication} variant="secondary" className="mt-4"><Plus size={16} /> Add medication</Button></div> : <div className="divide-y divide-[#EDF2EE]">{sorted.map((dose) => {
+            const isTaken = dose.status === 'taken';
+            const isSkipped = dose.status === 'skipped';
+            const done = isTaken || isSkipped;
+            return <article key={dose.id} className="flex flex-col gap-4 px-4 py-4 transition hover:bg-[#FCFDFC] sm:flex-row sm:items-center sm:px-6">
+              <time className="w-[4.7rem] shrink-0 text-sm font-bold tabular-nums text-[#608173]">{timeLabel(dose.scheduled_at)}</time>
+              {dose.medication_photo ? <img src={dose.medication_photo} alt="" className="h-12 w-12 shrink-0 rounded-xl border border-[#E5ECE8] object-cover" /> : <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[#EAF5EF] text-[#529373]"><Pill size={19} /></span>}
+              <div className="min-w-0 flex-1"><h3 className="truncate font-bold text-[#293B31]">{dose.medication_name}</h3><p className="mt-0.5 text-sm text-[#849188]">{dose.medication_instructions || 'Scheduled dose'}{dose.medication_strength ? ` · ${dose.medication_strength}` : ''}</p></div>
+              <div className="flex items-center justify-between gap-3 sm:justify-end">{done ? <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${isTaken ? 'bg-[#EAF6EF] text-[#378362]' : 'bg-[#F0F2F1] text-[#78847D]'}`}>{isTaken ? <CheckCircle2 size={14} /> : <SkipForward size={14} />}{isTaken ? 'Taken' : 'Skipped'}</span> : <><button type="button" aria-label={`Mark ${dose.medication_name} taken`} disabled={updatingId === dose.id} onClick={() => void markDose(dose, 'taken')} className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[#51AF8E] px-3 text-xs font-bold text-white transition hover:bg-[#3E9879] disabled:opacity-60"><Check size={15} />Taken</button><button type="button" aria-label={`Skip ${dose.medication_name}`} disabled={updatingId === dose.id} onClick={() => void markDose(dose, 'skipped')} className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-[#E3EAE5] bg-white px-3 text-xs font-semibold text-[#738178] transition hover:bg-[#F6F9F7] disabled:opacity-60"><X size={15} />Skip</button></>}</div>
+            </article>;
+          })}</div>}
+        </section>
 
-              return (
-                <div key={dose.id} className="relative group">
-                  {/* Timeline Node Bullet (Pharmax style) */}
-                  <div
-                    className={`absolute -left-6 md:-left-8 top-5 w-6 h-6 rounded-full border-2 bg-white flex items-center justify-center transition ${
-                      isTaken
-                        ? 'border-[#167C53] text-[#167C53]'
-                        : isMissed
-                        ? 'border-red-500 text-red-500'
-                        : isSkipped
-                        ? 'border-gray-400 text-gray-400'
-                        : 'border-amber-400 text-amber-500'
-                    }`}
-                  >
-                    {isTaken && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                    {isMissed && <X className="w-3.5 h-3.5 stroke-[3]" />}
-                    {isSkipped && <div className="w-2 h-2 rounded-full bg-gray-400" />}
-                    {!isTaken && !isMissed && !isSkipped && <div className="w-2 h-2 rounded-full bg-amber-400" />}
-                  </div>
-
-                  {/* Dose Card (Pharmax & Medico style) */}
-                  <div className="bg-[#F8FAF9] hover:bg-white border border-gray-200/80 hover:border-gray-300 rounded-2xl p-4 md:p-5 transition shadow-sm space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div className="flex items-center gap-3">
-                        {dose.medication_photo ? (
-                          <img
-                            src={dose.medication_photo}
-                            alt={dose.medication_name || 'Medicine'}
-                            className="w-12 h-12 object-cover rounded-xl border border-gray-200"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-xl bg-[#E9F5EF] text-[#167C53] flex items-center justify-center font-bold">
-                            <Pill className="w-6 h-6" />
-                          </div>
-                        )}
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-bold text-gray-900 text-base">
-                              {dose.medication_name}
-                            </h4>
-                            {dose.medication_strength && (
-                              <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
-                                {dose.medication_strength}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            {dose.medication_instructions || 'Take 1 dose'}
-                            {dose.medication_purpose ? ` • For ${dose.medication_purpose}` : ''}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 self-start sm:self-center">
-                        <span className="text-xs font-bold text-gray-700 bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-2xs">
-                          {formatTime(dose.scheduled_at)}
-                        </span>
-                        <Badge
-                          variant={
-                            dose.food_instruction === 'before_food'
-                              ? 'foodBefore'
-                              : dose.food_instruction === 'after_food'
-                              ? 'foodAfter'
-                              : 'neutral'
-                          }
-                        >
-                          {dose.food_instruction === 'before_food'
-                            ? 'Before food'
-                            : dose.food_instruction === 'after_food'
-                            ? 'After food'
-                            : 'Any Time'}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    {/* Status & Caregiver Action Controls */}
-                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <Badge variant={dose.status}>
-                          {dose.status.toUpperCase()}
-                        </Badge>
-                        {dose.acted_at && (
-                          <span className="text-gray-400">
-                            Recorded at {formatTime(dose.acted_at)} by {dose.acted_by}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {dose.status !== 'taken' && (
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            isLoading={updatingId === dose.id}
-                            onClick={() => handleUpdateStatus(dose.id, 'taken')}
-                          >
-                            <Check className="w-3.5 h-3.5" /> Mark Taken
-                          </Button>
-                        )}
-                        {dose.status !== 'skipped' && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            isLoading={updatingId === dose.id}
-                            onClick={() => handleUpdateStatus(dose.id, 'skipped')}
-                          >
-                            Skip
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <aside className="space-y-5">
+          <section className="rounded-[1.75rem] border border-[#E0EBE5] bg-white p-5 shadow-[0_16px_55px_-40px_rgba(30,70,53,.32)] sm:p-6">
+            <div className="flex items-center justify-between"><h2 className="text-lg font-bold text-[#293B31]">Next reminder</h2><span className="grid h-9 w-9 place-items-center rounded-full bg-[#EDF7F1] text-[#559676]"><Clock3 size={18} /></span></div>
+            {nextDose ? <><p className="mt-6 text-4xl font-extrabold tracking-tight text-[#4DAE91]">{timeLabel(nextDose.scheduled_at)}</p><p className="mt-2 font-semibold text-[#36483D]">{nextDose.medication_name}</p><p className="text-sm text-[#849188]">{nextDose.medication_instructions || 'Scheduled dose'}</p></> : <><p className="mt-5 font-bold text-[#34473C]">You&apos;re up to date</p><p className="mt-1 text-sm text-[#849188]">No pending doses for today.</p></>}
+            <button type="button" onClick={onOpenQrModal} className="mt-6 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#D8E9DF] bg-[#F5FAF7] px-4 text-sm font-semibold text-[#4C8769] transition hover:bg-[#EDF6F0]"><QrCode size={16} /> Open patient view <ArrowUpRight size={15} /></button>
+          </section>
+          <section className="rounded-[1.75rem] border border-[#E0EBE5] bg-white p-5 shadow-[0_16px_55px_-40px_rgba(30,70,53,.32)] sm:p-6">
+            <div className="flex items-center justify-between"><div><h2 className="text-lg font-bold text-[#293B31]">Today&apos;s progress</h2><p className="mt-0.5 text-sm text-[#87948B]">Based on recorded doses</p></div><span className="text-2xl font-extrabold text-[#4DAE91]">{doses.length ? `${completion}%` : '—'}</span></div>
+            <div className="mt-5 h-3 overflow-hidden rounded-full bg-[#EEF2EF]"><div className="h-full rounded-full bg-[#5BB99A] transition-all" style={{ width: `${completion}%` }} /></div>
+            <div className="mt-3 flex justify-between text-xs font-medium text-[#849188]"><span>{counts.taken} taken</span><span>{counts.pending} upcoming{counts.skipped ? ` · ${counts.skipped} skipped` : ''}</span></div>
+          </section>
+        </aside>
       </div>
+      <p className="px-2 text-center text-xs text-[#8A9990]">A reminder tool for family support · Follow the healthcare professional&apos;s instructions.</p>
     </div>
   );
 }
