@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://dawareminder-backend.onrender.com/api/$1"
+      "destination": "https://dawa-reminders.onrender.com/api/$1"
     },
     {
       "source": "/health",
-      "destination": "https://dawareminder-backend.onrender.com/health"
+      "destination": "https://dawa-reminders.onrender.com/health"
     },
     {
       "source": "/(.*)",
