@@ -12,6 +12,7 @@ import { AddPatientModal } from '@/features/caregiver/AddPatientModal';
 import { AddMedicationModal } from '@/features/caregiver/AddMedicationModal';
 import { ShareQrModal } from '@/features/caregiver/ShareQrModal';
 import { PatientView } from '@/features/patient/PatientView';
+import { PwaInstallPrompt } from '@/components/PwaInstallPrompt';
 import { Activity, Shield, HeartHandshake, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface HealthData {
@@ -391,6 +392,7 @@ function CaregiverShell() {
 export default function App() {
   return (
     <BrowserRouter>
+      <PwaInstallPrompt />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<AuthPage />} />

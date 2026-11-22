@@ -29,7 +29,7 @@
 - [x] **Stage 2: Patients and medicines** (Caregiver-scoped CRUD, token regeneration, patient switcher, photo upload preview)
 - [x] **Stage 3: Schedules and doses** (Schedule builder with fixed times and food instructions, on-demand Asia/Kolkata generation, Pytest test suite)
 - [x] **Stage 4: Patient experience and monitoring** (Token link & QR modal, Taken/Skipped huge buttons, voice announcement via Web Speech API, Hindi/English toggle, live caregiver monitoring)
-- [ ] **Stage 5: PWA and accessibility** (Manifest, service worker, install prompt, Hindi/English toggle, disclaimer)
+- [x] **Stage 5: PWA and accessibility** (Web app manifest and generated service worker, install prompt, Hindi/English toggle, disclaimer, keyboard focus visibility, reduced-motion support, and scalable browser zoom)
 - [ ] **Stage 6: Stretch features** (Adherence weekly charts, offline queue, caregiver missed dose alerts)
 - [ ] **Stage 7: Hardening and demo preparation** (Database seed script, manual checklist, keep-awake pinger)
 
@@ -41,7 +41,8 @@
 - The local `DATABASE_URL` uses SQLite. A Neon production URL and deployment credentials are not configured in this checkout; no Vercel project link or deploy CLI is available, and Docker is not running.
 - Python syntax, TypeScript, backend application import, and OpenAPI route generation pass after adding SQLAlchemy's asyncio dependency. Local Alembic migrations have been applied through the caregiver-session revision; the backend `/health` endpoint reports the SQLite database connected.
 - Frontend uses Rollup's official WASM Node package to avoid the blocked native module. `npm run build` passes and the local Vite server responds at `http://127.0.0.1:3000/` with Smart App Control left on.
-- No backend test files or frontend test files are present yet.
+- Backend integration tests are present; no frontend test files are present yet.
+- Frontend production build passes after Stage 5. PWA icon assets, manifest, service worker output, and browser install prompt are configured; iPhone home-screen installation still requires manual Safari verification on a real device.
 - Expired session records are removed when used; periodic session cleanup is not configured.
 - Stage 1 needs a live deployment and a real-device login check before it can be marked complete.
 

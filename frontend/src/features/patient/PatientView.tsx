@@ -37,6 +37,10 @@ export function PatientView() {
   };
 
   useEffect(() => {
+    document.documentElement.lang = lang === 'hi' ? 'hi' : 'en';
+  }, [lang]);
+
+  useEffect(() => {
     fetchTodayDoses();
   }, [token]);
 
@@ -165,8 +169,10 @@ export function PatientView() {
 
         {/* Hindi / English Toggle Button */}
         <button
+          type="button"
+          aria-label={lang === 'hi' ? 'Switch language to English' : 'भाषा हिंदी में बदलें'}
           onClick={() => setLang(lang === 'hi' ? 'en' : 'hi')}
-          className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-300 rounded-2xl text-sm font-bold text-gray-800 hover:bg-gray-50 shadow-2xs"
+          className="flex min-h-11 items-center gap-1.5 px-3 py-2 bg-white border border-gray-300 rounded-2xl text-sm font-bold text-gray-800 hover:bg-gray-50 shadow-2xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#167C53]"
         >
           <Globe2 className="w-4 h-4 text-[#167C53]" />
           <span>{lang === 'hi' ? 'English' : 'हिंदी'}</span>
@@ -175,7 +181,7 @@ export function PatientView() {
 
       {/* Floating Success Banner */}
       {successMessage && (
-        <div className="my-4 p-5 bg-[#E6F9F0] border-2 border-[#167C53] rounded-2xl text-[#0E6245] flex items-center gap-3 animate-bounce">
+        <div role="status" aria-live="polite" className="my-4 p-5 bg-[#E6F9F0] border-2 border-[#167C53] rounded-2xl text-[#0E6245] flex items-center gap-3">
           <ShieldCheck className="w-8 h-8 text-[#167C53] shrink-0" />
           <p className="text-xl font-bold">{successMessage}</p>
         </div>
@@ -260,6 +266,8 @@ export function PatientView() {
 
                     {/* Voice Read-out Button */}
                     <button
+                      type="button"
+                      aria-label={t.speakBtn}
                       onClick={() =>
                         speakText(
                           lang === 'hi'
@@ -303,6 +311,8 @@ export function PatientView() {
                   ) : (
                     <div className="grid grid-cols-2 gap-4 pt-2">
                       <button
+                        type="button"
+                        aria-label={lang === 'hi' ? `${dose.medication_name}: ${t.takenBtn}` : `${t.takenBtn}: ${dose.medication_name}`}
                         onClick={() => handleAction(dose, 'taken')}
                         disabled={actionLoadingId === dose.id}
                         className="min-h-16 py-4 bg-[#167C53] hover:bg-[#0D4E34] text-white rounded-2xl font-black text-xl sm:text-2xl flex items-center justify-center gap-2 transition active:scale-95 shadow-md"
@@ -312,6 +322,8 @@ export function PatientView() {
                       </button>
 
                       <button
+                        type="button"
+                        aria-label={lang === 'hi' ? `${dose.medication_name}: ${t.skipBtn}` : `${t.skipBtn}: ${dose.medication_name}`}
                         onClick={() => handleAction(dose, 'skipped')}
                         disabled={actionLoadingId === dose.id}
                         className="min-h-16 py-4 bg-white hover:bg-gray-100 border-2 border-gray-300 text-gray-700 rounded-2xl font-bold text-lg sm:text-xl flex items-center justify-center gap-2 transition active:scale-95"
