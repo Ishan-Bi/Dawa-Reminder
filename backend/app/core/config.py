@@ -81,6 +81,8 @@ class Settings(BaseSettings):
 
         parsed = urlsplit(url)
         query = parse_qsl(parsed.query, keep_blank_values=True)
+        # channel_binding is a libpq/psycopg option, not an asyncpg connect argument.
+        query = [(key, value) for key, value in query if key != "channel_binding"]
         sslmode_values = [value for key, value in query if key == "sslmode"]
         if sslmode_values:
             query = [(key, value) for key, value in query if key != "sslmode"]
