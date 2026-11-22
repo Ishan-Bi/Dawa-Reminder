@@ -50,7 +50,7 @@ function HomePage() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-[#202824]">DawaReminder</h1>
-              <p className="text-xs text-[#5C6863]">परिवार साथ है · Family care, made simpler</p>
+              <p className="text-xs text-[#5C6863]">Family care, made simpler</p>
             </div>
           </Link>
           <nav aria-label="Main navigation" className="flex items-center gap-2">
