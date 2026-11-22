@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Dose } from '@/types';
 import { apiRequest } from '@/lib/api';
 import { Check, X, Volume2, ShieldCheck, Heart, AlertCircle } from 'lucide-react';
+import { PatientLayout } from '@/components/layout/PatientLayout';
 
 interface PatientTodayData {
   patient: {
@@ -20,6 +21,7 @@ export function PatientView() {
   const [error, setError] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchTodayDoses = async () => {
     if (!token) return;
@@ -55,6 +57,7 @@ export function PatientView() {
   const handleAction = async (dose: Dose, action: 'taken' | 'skipped') => {
     if (!token) return;
     setActionLoadingId(dose.id);
+    setActionError(null);
     try {
       await apiRequest(`/p/${token}/doses/${dose.id}/${action}`, {
         method: 'POST',
@@ -75,7 +78,7 @@ export function PatientView() {
         setSuccessMessage(null);
       }, 4000);
     } catch (err: any) {
-      alert(err.message || 'Failed to record dose action');
+      setActionError(err.message || 'Could not update this dose. Please try again.');
     } finally {
       setActionLoadingId(null);
     }
@@ -83,34 +86,34 @@ export function PatientView() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#F8FAF9] flex items-center justify-center p-6 text-center">
-        <div className="space-y-4">
-          <div className="w-16 h-16 border-4 border-[#167C53] border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-2xl font-bold text-gray-800">Loading your medicines...</p>
+      <PatientLayout>
+        <div className="flex min-h-[55vh] items-center justify-center p-6 text-center">
+          <div role="status" className="space-y-4">
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+            <p className="text-xl font-bold text-ink">Loading your schedule...</p>
+          </div>
         </div>
-      </main>
+      </PatientLayout>
     );
   }
 
   if (error || !data) {
     return (
-      <main className="min-h-screen bg-[#F8FAF9] flex items-center justify-center p-6 text-center">
-        <div className="max-w-md bg-white p-8 rounded-3xl border border-red-200 shadow-sm space-y-4">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
-          <h2 className="text-2xl font-bold text-gray-900">Link invalid or expired</h2>
-          <p className="text-base text-gray-600">{error}</p>
-          <p className="text-sm text-gray-500">
-            Please request an updated access link from your caregiver.
-          </p>
+      <PatientLayout>
+        <div className="flex min-h-[55vh] items-center justify-center p-6 text-center">
+          <div role="alert" className="w-full max-w-md space-y-4 rounded-card border border-status-missed-border bg-surface p-8 shadow-card">
+            <AlertCircle className="mx-auto h-12 w-12 text-status-missed" aria-hidden="true" />
+            <h1 className="text-2xl font-bold text-ink">Link invalid or expired</h1>
+            <p className="text-base text-ink-muted">{error || 'Please request an updated access link from your caregiver.'}</p>
+          </div>
         </div>
-      </main>
+      </PatientLayout>
     );
   }
 
   const t = {
-    greeting: `Hello, ${data.patient.name}`,
     title: "Today's medicines",
-    empty: 'No medicines remaining for today.',
+    empty: 'You have no scheduled doses today.',
     beforeFood: 'Before food',
     afterFood: 'After food',
     anyFood: 'Any time',
@@ -119,24 +122,21 @@ export function PatientView() {
     alreadyTaken: 'Taken',
     alreadySkipped: 'Skipped',
     speakBtn: 'Read aloud',
-    disclaimer: 'This is a reminder tool, not medical advice.',
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] text-[#202824] flex flex-col justify-between p-4 sm:p-8 max-w-2xl mx-auto">
-      {/* Top Header */}
-      <header className="py-4 flex items-center border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#167C53] flex items-center justify-center text-white font-black text-2xl shadow-sm">
-            DR
-          </div>
+    <PatientLayout>
+      <div className="space-y-6">
+        <section className="flex flex-col gap-4 rounded-3xl bg-brand px-6 py-6 text-white shadow-card sm:flex-row sm:items-end sm:justify-between sm:px-8">
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-gray-900">DawaReminder</h1>
-            <p className="text-sm font-semibold text-[#167C53]">{t.greeting}</p>
+            <p className="text-sm font-semibold text-white/80">Today for</p>
+            <h1 className="mt-1 text-3xl font-extrabold text-white sm:text-4xl">{data.patient.name}</h1>
+            <p className="mt-1 text-lg font-semibold text-white">{t.title}</p>
           </div>
-        </div>
-
-      </header>
+          <span className="w-fit rounded-pill border border-white/25 bg-white/10 px-4 py-2 text-base font-bold text-white">
+            {new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'short' })}
+          </span>
+        </section>
 
       {/* Floating Success Banner */}
       {successMessage && (
@@ -147,24 +147,12 @@ export function PatientView() {
       )}
 
       {/* Doses List — High Contrast, Large Type */}
-      <main className="my-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
-            {t.title}
-          </h2>
-          <span className="text-base font-bold text-gray-500 bg-white px-3 py-1 rounded-xl border">
-            {new Date().toLocaleDateString('en-IN', {
-              weekday: 'short',
-              day: 'numeric',
-              month: 'short',
-            })}
-          </span>
-        </div>
+      <section aria-label="Today's doses" className="space-y-4">
 
         {data.doses.length === 0 ? (
-          <div className="bg-white p-10 rounded-3xl border border-gray-200 text-center space-y-3">
-            <Heart className="w-16 h-16 text-[#167C53] mx-auto" />
-            <p className="text-xl font-bold text-gray-800">{t.empty}</p>
+          <div className="space-y-3 rounded-3xl border border-surface-border bg-surface px-6 py-10 text-center shadow-card">
+            <Heart className="mx-auto h-14 w-14 text-brand" aria-hidden="true" />
+            <p className="text-xl font-bold text-ink">{t.empty}</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -172,6 +160,7 @@ export function PatientView() {
               const isTaken = dose.status === 'taken';
               const isSkipped = dose.status === 'skipped';
               const scheduledTime = new Date(dose.scheduled_at).toLocaleTimeString('en-IN', {
+                timeZone: 'Asia/Kolkata',
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: true,
@@ -187,7 +176,7 @@ export function PatientView() {
               return (
                 <article
                   key={dose.id}
-                  className={`bg-white rounded-3xl p-6 sm:p-8 border-2 transition shadow-sm space-y-6 ${
+                  className={`rounded-3xl border-2 bg-surface p-5 shadow-card transition sm:p-7 space-y-5 ${
                     isTaken
                       ? 'border-[#167C53] bg-emerald-50/30'
                       : isSkipped
@@ -295,13 +284,9 @@ export function PatientView() {
             })}
           </div>
         )}
-      </main>
-
-      {/* Reassuring Footer & Disclaimer */}
-      <footer className="py-6 border-t border-gray-200 text-center text-xs text-gray-500 space-y-1">
-        <p className="font-semibold text-gray-700">{t.disclaimer}</p>
-        <p>DawaReminder &copy; 2026 — Family configures. Elderly follows.</p>
-      </footer>
-    </div>
+        {actionError && <p role="alert" className="rounded-card border border-status-missed-border bg-status-missed-bg px-4 py-3 text-base font-semibold text-status-missed-text">{actionError}</p>}
+      </section>
+      </div>
+    </PatientLayout>
   );
 }

@@ -1,145 +1,146 @@
-import { useState, useEffect } from 'react';
-import { Patient, Dose } from '@/types';
-import { Badge } from '@/components/ui/Badge';
+import { useCallback, useEffect, useState } from 'react';
+import type { Patient, Dose } from '@/types';
 import { apiRequest } from '@/lib/api';
-import { History, Pill, Calendar, Filter } from 'lucide-react';
+import { StatusChip } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { SkeletonCard } from '@/components/ui/Skeleton';
+import { CalendarClock, History, Pill } from 'lucide-react';
 
 interface HistoryViewProps {
   patient: Patient | null;
 }
 
+function formatDateTime(value: string) {
+  const date = new Date(value);
+  return {
+    date: date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }),
+    time: date.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true }),
+  };
+}
+
 export function HistoryView({ patient }: HistoryViewProps) {
   const [history, setHistory] = useState<Dose[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState('all');
 
-  useEffect(() => {
-    if (!patient) return;
+  const fetchHistory = useCallback(async () => {
+    if (!patient) {
+      setHistory([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    apiRequest<Dose[]>(`/patients/${patient.id}/history`)
-      .then(setHistory)
-      .finally(() => setLoading(false));
+    setError(null);
+    try {
+      const data = await apiRequest<Dose[]>(`/patients/${patient.id}/history`);
+      setHistory(data);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not load dose history.');
+    } finally {
+      setLoading(false);
+    }
   }, [patient?.id]);
 
-  if (!patient) {
-    return <p className="text-gray-500">Please select a patient.</p>;
-  }
+  useEffect(() => {
+    void fetchHistory();
+  }, [fetchHistory]);
 
-  const filtered = statusFilter === 'all' ? history : history.filter((d) => d.status === statusFilter);
+  const filtered = statusFilter === 'all' ? history : history.filter((dose) => dose.status === statusFilter);
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-[#202824] flex items-center gap-2">
-            <History className="w-6 h-6 text-[#167C53]" /> Dose History & Audit Log
-          </h2>
-          <p className="text-sm text-gray-500">
-            Complete record of taken, skipped, and missed medications for <span className="font-semibold">{patient.name}</span>
-          </p>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand">{patient?.name ?? 'Family care'}</p>
+          <h1 className="mt-1 flex items-center gap-2 font-heading text-2xl font-bold text-ink sm:text-3xl">
+            <History aria-hidden="true" className="h-6 w-6 text-brand" /> Dose history
+          </h1>
+          <p className="mt-1 text-sm text-ink-muted">Review doses recorded by the patient or caregiver.</p>
         </div>
-
-        {/* Status Filter */}
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-400" />
+        <label className="flex items-center gap-2 text-sm font-semibold text-ink-muted">
+          <span>Filter</span>
           <select
+            aria-label="Filter doses by status"
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-white border text-xs font-semibold rounded-xl px-3 py-2 text-gray-700"
+            onChange={(event) => setStatusFilter(event.target.value)}
+            className="min-h-10 rounded-btn border border-surface-border bg-surface px-3 text-sm text-ink"
           >
-            <option value="all">All Statuses ({history.length})</option>
+            <option value="all">All ({history.length})</option>
             <option value="taken">Taken</option>
             <option value="pending">Pending</option>
             <option value="skipped">Skipped</option>
             <option value="missed">Missed</option>
           </select>
-        </div>
-      </div>
+        </label>
+      </header>
 
-      {loading ? (
-        <p className="text-sm text-gray-500">Loading history logs...</p>
+      {!patient ? (
+        <section className="rounded-card border border-surface-border bg-surface shadow-card"><EmptyState icon={History} heading="Choose a patient first" subtext="Select or add a patient to view dose history." /></section>
+      ) : error ? (
+        <section className="rounded-card border border-surface-border bg-surface shadow-card"><ErrorState heading="Could not load history" message={error} onRetry={() => void fetchHistory()} /></section>
+      ) : loading ? (
+        <div className="space-y-3"><SkeletonCard /><SkeletonCard /></div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-sm space-y-2">
-          <p className="text-gray-500 font-medium">No dose events recorded yet.</p>
-          <p className="text-xs text-gray-400">Events appear as doses are acted upon by the patient or caregiver.</p>
-        </div>
+        <section className="rounded-card border border-surface-border bg-surface shadow-card">
+          <EmptyState icon={CalendarClock} heading={statusFilter === 'all' ? 'No doses recorded yet' : `No ${statusFilter} doses`} subtext={statusFilter === 'all' ? 'Dose updates will appear here as the patient or caregiver records them.' : 'Try another status filter.'} />
+        </section>
       ) : (
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-[#F8FAF9] border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                <tr>
-                  <th className="px-6 py-4">Scheduled Time</th>
-                  <th className="px-6 py-4">Medication</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Recorded At</th>
-                  <th className="px-6 py-4">Acted By</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filtered.map((dose) => {
-                  const scheduledDt = new Date(dose.scheduled_at);
-                  const actedDt = dose.acted_at ? new Date(dose.acted_at) : null;
-
-                  return (
-                    <tr key={dose.id} className="hover:bg-gray-50/80 transition">
-                      <td className="px-6 py-4 font-semibold text-gray-800 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          <span>
-                            {scheduledDt.toLocaleDateString('en-IN', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric',
-                            })}
-                            ,{' '}
-                            {scheduledDt.toLocaleTimeString('en-IN', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              hour12: true,
-                            })}
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-4 font-bold text-gray-900">
-                        <div className="flex items-center gap-2">
-                          <Pill className="w-4 h-4 text-[#167C53]" />
-                          <span>{dose.medication_name}</span>
-                          {dose.medication_strength && (
-                            <span className="text-xs font-normal text-gray-500">
-                              ({dose.medication_strength})
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-4">
-                        <Badge variant={dose.status}>
-                          {dose.status.toUpperCase()}
-                        </Badge>
-                      </td>
-
-                      <td className="px-6 py-4 text-xs text-gray-500 whitespace-nowrap">
-                        {actedDt
-                          ? `${actedDt.toLocaleTimeString('en-IN', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              hour12: true,
-                            })}`
-                          : '—'}
-                      </td>
-
-                      <td className="px-6 py-4 text-xs font-medium text-gray-600 capitalize">
-                        {dose.acted_by || '—'}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        <>
+          <div className="space-y-3 md:hidden">
+            {filtered.map((dose) => {
+              const scheduled = formatDateTime(dose.scheduled_at);
+              const acted = dose.acted_at ? formatDateTime(dose.acted_at) : null;
+              return (
+                <article key={dose.id} className="rounded-card border border-surface-border bg-surface p-4 shadow-card">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 gap-3">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-card bg-brand-softer text-brand"><Pill aria-hidden="true" size={18} /></span>
+                      <div className="min-w-0"><h2 className="truncate font-bold text-ink">{dose.medication_name ?? 'Medication'}</h2><p className="text-sm text-ink-muted">{dose.medication_strength ?? ''}</p></div>
+                    </div>
+                    <StatusChip status={dose.status} size="sm" />
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-3 border-t border-surface-border pt-3 text-xs">
+                    <div><p className="text-ink-subtle">Scheduled</p><p className="mt-0.5 font-semibold text-ink">{scheduled.date} · {scheduled.time}</p></div>
+                    <div><p className="text-ink-subtle">Recorded</p><p className="mt-0.5 font-semibold text-ink">{acted ? `${acted.date} · ${acted.time}` : '—'}</p></div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
-        </div>
+
+          <div className="hidden overflow-hidden rounded-card border border-surface-border bg-surface shadow-card md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] text-left text-sm">
+                <thead className="bg-surface-raised text-xs font-bold uppercase tracking-wide text-ink-muted">
+                  <tr>
+                    <th scope="col" className="px-5 py-4">Scheduled</th>
+                    <th scope="col" className="px-5 py-4">Medication</th>
+                    <th scope="col" className="px-5 py-4">Status</th>
+                    <th scope="col" className="px-5 py-4">Recorded</th>
+                    <th scope="col" className="px-5 py-4">By</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-surface-border">
+                  {filtered.map((dose) => {
+                    const scheduled = formatDateTime(dose.scheduled_at);
+                    const acted = dose.acted_at ? formatDateTime(dose.acted_at) : null;
+                    return (
+                      <tr key={dose.id} className="hover:bg-surface-hover">
+                        <td className="whitespace-nowrap px-5 py-4"><span className="font-semibold text-ink">{scheduled.date}</span><span className="ml-2 text-ink-muted">{scheduled.time}</span></td>
+                        <td className="px-5 py-4"><p className="font-semibold text-ink">{dose.medication_name ?? 'Medication'}</p>{dose.medication_strength && <p className="text-xs text-ink-muted">{dose.medication_strength}</p>}</td>
+                        <td className="px-5 py-4"><StatusChip status={dose.status} size="sm" /></td>
+                        <td className="whitespace-nowrap px-5 py-4 text-ink-muted">{acted ? `${acted.date} · ${acted.time}` : '—'}</td>
+                        <td className="px-5 py-4 text-ink-muted">{dose.acted_by ?? '—'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

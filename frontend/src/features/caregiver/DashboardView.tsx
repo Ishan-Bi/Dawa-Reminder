@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Patient, Dose } from '@/types';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { StatCard } from '@/components/domain/StatCard';
 import { apiRequest } from '@/lib/api';
 import {
   CheckCircle2,
@@ -97,82 +98,47 @@ export function DashboardView({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <section className="overflow-hidden rounded-3xl bg-[#123D2C] p-6 text-white shadow-sm md:p-8">
+      <section className="overflow-hidden rounded-3xl border border-surface-border bg-surface p-5 shadow-card sm:p-7">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-200">Care overview</p>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-tight">Today for {patient.name}</h2>
-            <p className="mt-2 text-sm text-emerald-100">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand">Care overview</p>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-ink">Today for {patient.name}</h2>
+            <p className="mt-2 text-sm text-ink-muted">
               {new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="md" onClick={onOpenQrModal} className="!border-white/25 !bg-white/10 !text-white hover:!bg-white/20 hover:!text-white">
+            <Button variant="secondary" size="md" onClick={onOpenQrModal}>
               <QrCode aria-hidden="true" className="h-4 w-4" /> Share patient link
             </Button>
-            <Button size="md" onClick={onOpenAddMedication} className="!bg-white !text-[#123D2C] hover:!bg-emerald-50">
+            <Button size="md" onClick={onOpenAddMedication}>
               <Plus aria-hidden="true" className="h-4 w-4" /> Add medication
             </Button>
           </div>
         </div>
-        <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-white/15 bg-white/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-brand-soft bg-brand-softer p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/15"><Clock aria-hidden="true" className="h-5 w-5" /></span>
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-surface text-brand"><Clock aria-hidden="true" className="h-5 w-5" /></span>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">Next pending dose</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-text">Next pending dose</p>
               {nextDose ? (
-                <p className="mt-0.5 font-bold">{nextDose.medication_name} {nextDose.medication_strength ? `· ${nextDose.medication_strength}` : ''}</p>
+                <p className="mt-0.5 font-bold text-ink">{nextDose.medication_name} {nextDose.medication_strength ? `· ${nextDose.medication_strength}` : ''}</p>
               ) : (
-                <p className="mt-0.5 font-bold">No pending doses today</p>
+                <p className="mt-0.5 font-bold text-ink">No pending doses today</p>
               )}
             </div>
           </div>
-          {nextDose && <p className="text-xl font-extrabold tabular-nums sm:text-2xl">{formatTime(nextDose.scheduled_at)}</p>}
+          {nextDose && <p className="text-xl font-extrabold tabular-nums text-brand sm:text-2xl">{formatTime(nextDose.scheduled_at)}</p>}
         </div>
       </section>
 
       {actionError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{actionError}</p>}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-[#167C53] flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Taken</p>
-            <p className="text-2xl font-bold text-gray-900">{takenDoses}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
-          <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-            <Clock className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Pending</p>
-            <p className="text-2xl font-bold text-gray-900">{pendingDoses}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
-          <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
-            <AlertTriangle className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Missed</p>
-            <p className="text-2xl font-bold text-gray-900">{missedDoses}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-lg font-bold text-teal-700">
-            {adherenceRate === null ? '—' : `${adherenceRate}%`}
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Adherence</p>
-            <p className="text-sm font-semibold text-gray-800">{totalDoses ? `${takenDoses} of ${totalDoses}` : 'No doses yet'}</p>
-          </div>
-        </div>
+        <StatCard icon={CheckCircle2} label="Taken" value={takenDoses} iconColor="text-status-taken" iconBg="bg-status-taken-bg" />
+        <StatCard icon={Clock} label="Pending" value={pendingDoses} iconColor="text-status-pending" iconBg="bg-status-pending-bg" />
+        <StatCard icon={AlertTriangle} label="Missed" value={missedDoses} iconColor="text-status-missed" iconBg="bg-status-missed-bg" />
+        <StatCard icon={Calendar} label="Adherence today" value={adherenceRate === null ? '—' : adherenceRate} unit={adherenceRate === null ? undefined : '%'} trend="neutral" trendLabel={totalDoses ? `${takenDoses} of ${totalDoses} doses` : 'No doses yet'} />
       </div>
 
       {/* Main Routine & Timeline (Pharmax style) */}

@@ -119,20 +119,17 @@ async def update_medication(
     db: AsyncSession = Depends(get_db),
 ):
     med = await verify_medication_ownership(medication_id, caregiver, db)
-    if payload.name is not None:
-        med.name = payload.name
-    if payload.strength is not None:
-        med.strength = payload.strength
-    if payload.dosage_instructions is not None:
-        med.dosage_instructions = payload.dosage_instructions
-    if payload.purpose is not None:
-        med.purpose = payload.purpose
-    if payload.photo_url is not None:
-        med.photo_url = payload.photo_url
-    if payload.prescription_notes is not None:
-        med.prescription_notes = payload.prescription_notes
-    if payload.active is not None:
-        med.active = payload.active
+    for field in (
+        "name",
+        "strength",
+        "dosage_instructions",
+        "purpose",
+        "photo_url",
+        "prescription_notes",
+        "active",
+    ):
+        if field in payload.model_fields_set:
+            setattr(med, field, getattr(payload, field))
 
     await db.commit()
     await db.refresh(med)

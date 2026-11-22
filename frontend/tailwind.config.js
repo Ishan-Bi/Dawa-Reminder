@@ -8,14 +8,14 @@ export default {
     extend: {
       colors: {
         brand: {
-          DEFAULT:  '#0F766E',
-          hover:    '#115E59',
-          light:    '#CCFBF1',
-          soft:     '#D1FAE5',
-          softer:   '#ECFDF5',
-          text:     '#134E4A',
-          muted:    '#5EEAD4',
-          border:   '#99F6E4',
+          DEFAULT:  '#167C53',
+          hover:    '#0D4E34',
+          light:    '#D9F0E2',
+          soft:     '#C5E7D1',
+          softer:   '#E9F5EF',
+          text:     '#0D4E34',
+          muted:    '#62A982',
+          border:   '#B5DCC2',
         },
         surface: {
           DEFAULT: '#FFFFFF',
@@ -38,8 +38,8 @@ export default {
         },
       },
       fontFamily: {
-        heading: ['Manrope', 'Inter', 'Noto Sans Devanagari', 'sans-serif'],
-        sans:    ['Inter',   'Noto Sans Devanagari', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        heading: ['Inter', 'sans-serif'],
+        sans:    ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       borderRadius: {
         card:  '12px',

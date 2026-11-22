@@ -28,7 +28,7 @@
   - [x] Login/registration form and protected caregiver route shell.
 - [x] **Stage 2: Patients and medicines** (Caregiver-scoped CRUD, token regeneration, patient switcher, photo upload preview)
 - [x] **Stage 3: Schedules and doses** (Schedule builder with fixed times and food instructions, on-demand Asia/Kolkata generation, Pytest test suite)
-- [x] **Stage 4: Patient experience and monitoring** (Token link & QR modal, Taken/Skipped huge buttons, voice announcement via Web Speech API, Hindi/English toggle, live caregiver monitoring)
+- [x] **Stage 4: Patient experience and monitoring** (Token link & QR modal, Taken/Skipped large buttons, voice announcement via Web Speech API, live caregiver monitoring; visible interface is English-only per user preference)
 - [x] **Stage 5: PWA and accessibility** (Web app manifest and generated service worker, install prompt, English-only interface per user preference, disclaimer, keyboard focus visibility, reduced-motion support, and scalable browser zoom)
 - [ ] **Stage 6: Stretch features** (Adherence weekly charts, offline queue, caregiver missed dose alerts)
 - [ ] **Stage 7: Hardening and demo preparation** (Database seed script, manual checklist, keep-awake pinger)
@@ -46,6 +46,8 @@
 - Public landing page now leads with caregiver and patient workflows; technical backend status is available in a collapsed details panel. Production TypeScript/Vite/PWA build passes after this UI update.
 - Visible frontend copy and branding are English-only per user preference; the caregiver patient form defaults the stored language to English.
 - Caregiver dashboard now prioritizes today's patient plan, next pending dose, key dose counts, and quick actions; empty-day adherence is shown as unavailable instead of 100%.
+- Caregiver navigation exposes Dashboard, Patients, Medications, and Dose history; patient switching is available from desktop and mobile layouts. The responsive patient view uses large, clear dose actions. Medication editing updates the medication and its schedule through the existing API.
+- The frontend production build passes after the caregiver and patient UI integration. The UI uses live API data and avoids adding placeholder analytics or sample medication records.
 - Expired session records are removed when used; periodic session cleanup is not configured.
 - Stage 1 needs a live deployment and a real-device login check before it can be marked complete.
 

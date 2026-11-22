@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { apiRequest } from '@/lib/api';
-import { Caregiver, Patient, Dose } from '@/types';
+import { Caregiver, Patient, Dose, Medication } from '@/types';
 import { CaregiverLayout } from '@/components/layout/CaregiverLayout';
 import { DashboardView } from '@/features/caregiver/DashboardView';
 import { PatientsView } from '@/features/caregiver/PatientsView';
@@ -13,6 +13,8 @@ import { AddMedicationModal } from '@/features/caregiver/AddMedicationModal';
 import { ShareQrModal } from '@/features/caregiver/ShareQrModal';
 import { PatientView } from '@/features/patient/PatientView';
 import { PwaInstallPrompt } from '@/components/PwaInstallPrompt';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { Button } from '@/components/ui/Button';
 import { Activity, Shield, HeartHandshake, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface HealthData {
@@ -192,70 +194,67 @@ function AuthPage({ initialRegister = false }: { initialRegister?: boolean }) {
   };
 
   return (
-    <main className="min-h-screen bg-[#F8FAF9] px-5 py-10 grid place-items-center">
-      <section className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-8 shadow-sm">
-        <Link to="/" className="text-xs font-semibold text-[#167C53] hover:underline">← Home</Link>
-        <div className="flex items-center gap-3 mt-4">
-          <div className="w-9 h-9 rounded-xl bg-[#167C53] text-white flex items-center justify-center font-bold text-lg">
-            DR
-          </div>
-          <h1 className="text-2xl font-bold text-[#202824]">
-            {registering ? 'Create Caregiver Account' : 'Caregiver Sign In'}
-          </h1>
+    <main className="min-h-screen bg-surface-bg lg:grid lg:grid-cols-2">
+      <section className="relative hidden overflow-hidden bg-brand px-12 py-14 text-white lg:flex lg:flex-col lg:justify-between xl:px-20">
+        <div aria-hidden="true" className="absolute -right-32 -top-24 h-96 w-96 rounded-full border-[56px] border-white/10" />
+        <Link to="/" className="relative inline-flex w-fit items-center gap-3 text-white">
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-white/15 font-bold">DR</span>
+          <span className="font-heading text-lg font-bold">DawaReminder</span>
+        </Link>
+        <div className="relative max-w-xl py-14">
+          <p className="text-sm font-bold uppercase tracking-[0.16em] text-white/75">Caregiver workspace</p>
+          <h2 className="mt-4 text-4xl font-extrabold leading-tight text-white xl:text-5xl">Make the daily medicine routine easier to follow.</h2>
+          <p className="mt-5 max-w-lg text-base leading-7 text-white/80">Keep patient profiles, medication schedules, and dose updates together in one place.</p>
         </div>
-        <p className="mt-2 text-xs text-gray-500">Configure and track medication routines for elderly family members.</p>
+        <p className="relative text-sm text-white/70">A reminder tool for family support.</p>
+      </section>
 
-        <form className="mt-6 space-y-4" onSubmit={submit}>
-          {registering && (
-            <label className="block text-xs font-bold text-gray-700">
-              Full Name
-              <input
-                required
-                autoComplete="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#167C53]/30"
-              />
-            </label>
-          )}
-          <label className="block text-xs font-bold text-gray-700">
-            Email
-            <input
-              required
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#167C53]/30"
-            />
-          </label>
-          <label className="block text-xs font-bold text-gray-700">
-            Password
-            <input
-              required
-              type="password"
-              minLength={8}
-              autoComplete={registering ? 'new-password' : 'current-password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#167C53]/30"
-            />
-            {registering && <span className="mt-1 block text-[11px] font-normal text-gray-500">Use at least 8 characters.</span>}
-          </label>
-          {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-xs text-red-800 border border-red-200">{error}</p>}
-          <button
-            disabled={submitting}
-            className="w-full rounded-xl bg-[#167C53] px-4 py-3 text-sm font-semibold text-white hover:bg-[#0D4E34] disabled:opacity-60 transition shadow-xs"
-          >
-            {submitting ? 'Please wait...' : registering ? 'Create Account' : 'Sign In'}
-          </button>
-        </form>
-        <button
-          onClick={() => { setRegistering(!registering); setError(''); }}
-          className="mt-5 w-full text-center text-xs text-[#167C53] font-semibold hover:underline"
-        >
-          {registering ? 'Already have an account? Sign In' : 'New to DawaReminder? Create an Account'}
-        </button>
+      <section className="flex min-h-screen items-center justify-center px-5 py-10 sm:px-8">
+        <div className="w-full max-w-md">
+          <Link to="/" className="text-sm font-semibold text-brand hover:underline">← Back to home</Link>
+          <div className="mt-6 rounded-3xl border border-surface-border bg-surface p-6 shadow-card sm:p-9">
+            <div className="mb-6 flex items-center gap-3 lg:hidden">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand font-bold text-white">DR</span>
+              <span className="font-heading font-bold text-ink">DawaReminder</span>
+            </div>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand">{registering ? 'Get started' : 'Welcome back'}</p>
+            <h1 className="mt-2 font-heading text-3xl font-bold text-ink">
+              {registering ? 'Create your account' : 'Sign in'}
+            </h1>
+            <p className="mt-2 text-sm text-ink-muted">
+              {registering ? 'Create a caregiver account to set up a family medication routine.' : 'Sign in to manage your family’s medication routine.'}
+            </p>
+
+            <form className="mt-7 space-y-4" onSubmit={submit}>
+              {registering && (
+                <label className="block text-sm font-semibold text-ink">
+                  Full name
+                  <input required autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} className="mt-1.5 min-h-11 w-full rounded-btn border border-surface-border bg-surface px-3 py-2 text-sm font-normal outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" />
+                </label>
+              )}
+              <label className="block text-sm font-semibold text-ink">
+                Email address
+                <input required type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5 min-h-11 w-full rounded-btn border border-surface-border bg-surface px-3 py-2 text-sm font-normal outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" />
+              </label>
+              <label className="block text-sm font-semibold text-ink">
+                Password
+                <input required type="password" minLength={8} autoComplete={registering ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5 min-h-11 w-full rounded-btn border border-surface-border bg-surface px-3 py-2 text-sm font-normal outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" />
+                {registering && <span className="mt-1 block text-xs font-normal text-ink-muted">At least 8 characters.</span>}
+              </label>
+              {error && <p role="alert" className="rounded-btn border border-status-missed-border bg-status-missed-bg p-3 text-sm text-status-missed-text">{error}</p>}
+              <Button type="submit" size="lg" fullWidth isLoading={submitting}>
+                {submitting ? 'Please wait…' : registering ? 'Create account' : 'Sign in'}
+              </Button>
+            </form>
+
+            <p className="mt-6 text-center text-sm text-ink-muted">
+              {registering ? 'Already have an account?' : 'New to DawaReminder?'}{' '}
+              <button type="button" onClick={() => { setRegistering(!registering); setError(''); }} className="font-semibold text-brand hover:underline">
+                {registering ? 'Sign in' : 'Create an account'}
+              </button>
+            </p>
+          </div>
+        </div>
       </section>
     </main>
   );
@@ -265,13 +264,26 @@ function CaregiverShell() {
   const [user, setUser] = useState<Caregiver | null>(null);
   const [loading, setLoading] = useState(true);
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [patientsReady, setPatientsReady] = useState(false);
+  const [patientsError, setPatientsError] = useState<string | null>(null);
   const [activePatient, setActivePatient] = useState<Patient | null>(null);
   const [doses, setDoses] = useState<Dose[]>([]);
+  const [editingMedication, setEditingMedication] = useState<Medication | null>(null);
+  const [medicationsRefreshKey, setMedicationsRefreshKey] = useState(0);
 
   // Modals state
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
   const [isAddMedicationOpen, setIsAddMedicationOpen] = useState(false);
   const [qrModalPatient, setQrModalPatient] = useState<Patient | null>(null);
+
+  const openAddMedication = () => {
+    setEditingMedication(null);
+    setIsAddMedicationOpen(true);
+  };
+  const openEditMedication = (medication: Medication) => {
+    setEditingMedication(medication);
+    setIsAddMedicationOpen(true);
+  };
 
   // 1. Fetch user profile
   useEffect(() => {
@@ -286,11 +298,15 @@ function CaregiverShell() {
     try {
       const data = await apiRequest<Patient[]>('/patients');
       setPatients(data);
-      if (data.length > 0 && !activePatient) {
-        setActivePatient(data[0]);
-      }
-    } catch {
-      // Ignored if unauthorized
+      setPatientsError(null);
+      setActivePatient((current) => {
+        if (data.length === 0) return null;
+        return current && data.some((patient) => patient.id === current.id) ? current : data[0];
+      });
+    } catch (error) {
+      setPatientsError(error instanceof Error ? error.message : 'Could not load patient profiles.');
+    } finally {
+      setPatientsReady(true);
     }
   };
 
@@ -331,6 +347,17 @@ function CaregiverShell() {
 
   if (!user) return <Navigate to="/login" replace />;
 
+  if (!patientsReady) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-surface-bg p-6">
+        <div role="status" className="text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+          <p className="mt-4 font-semibold text-ink">Loading your care workspace...</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <CaregiverLayout
       user={user}
@@ -339,7 +366,11 @@ function CaregiverShell() {
       onSelectPatient={setActivePatient}
       onAddPatientClick={() => setIsAddPatientOpen(true)}
     >
-      <Routes>
+      {patientsError ? (
+        <section className="rounded-card border border-surface-border bg-surface shadow-card">
+          <ErrorState heading="Could not load patients" message={patientsError} onRetry={() => void fetchPatients()} />
+        </section>
+      ) : <Routes>
         <Route
           path="/"
           element={
@@ -347,7 +378,7 @@ function CaregiverShell() {
               patient={activePatient}
               doses={doses}
               onRefreshDoses={fetchDoses}
-              onOpenAddMedication={() => setIsAddMedicationOpen(true)}
+              onOpenAddMedication={openAddMedication}
               onOpenQrModal={() => setQrModalPatient(activePatient)}
               onOpenAddPatient={() => setIsAddPatientOpen(true)}
             />
@@ -371,7 +402,9 @@ function CaregiverShell() {
           element={
             <MedicationsView
               patient={activePatient}
-              onOpenAddMedication={() => setIsAddMedicationOpen(true)}
+              onOpenAddMedication={openAddMedication}
+              onEditMedication={openEditMedication}
+              refreshKey={medicationsRefreshKey}
             />
           }
         />
@@ -379,24 +412,26 @@ function CaregiverShell() {
           path="/history"
           element={<HistoryView patient={activePatient} />}
         />
-      </Routes>
+      </Routes>}
 
       {/* Modals */}
       <AddPatientModal
         isOpen={isAddPatientOpen}
         onClose={() => setIsAddPatientOpen(false)}
-        onSuccess={(newP) => {
-          fetchPatients();
+        onSuccess={async (newP) => {
+          await fetchPatients();
           setActivePatient(newP);
         }}
       />
 
       <AddMedicationModal
         isOpen={isAddMedicationOpen}
-        onClose={() => setIsAddMedicationOpen(false)}
+        onClose={() => { setIsAddMedicationOpen(false); setEditingMedication(null); }}
         patientId={activePatient?.id || null}
+        medication={editingMedication}
         onSuccess={() => {
-          fetchDoses();
+          setMedicationsRefreshKey((value) => value + 1);
+          void fetchDoses();
         }}
       />
 

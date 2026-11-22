@@ -2,7 +2,8 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
-  Settings,
+  ClipboardList,
+  History,
   LogOut,
   HeartHandshake,
   Pill,
@@ -32,7 +33,8 @@ interface CaregiverLayoutProps {
 const navItems = [
   { path: '/app',          label: 'Dashboard', Icon: LayoutDashboard, end: true  },
   { path: '/app/patients', label: 'Patients',  Icon: Users,            end: false },
-  { path: '/app/settings', label: 'Settings',  Icon: Settings,         end: false },
+  { path: '/app/medications', label: 'Medications', Icon: ClipboardList, end: false },
+  { path: '/app/history', label: 'Dose history', Icon: History, end: false },
 ];
 
 const DISCLAIMER = 'Reminder tool only, not medical advice.';
@@ -40,10 +42,14 @@ const DISCLAIMER = 'Reminder tool only, not medical advice.';
 export function CaregiverLayout({
   user,
   children,
+  patients = [],
   activePatient,
+  onSelectPatient,
   onAddPatient,
+  onAddPatientClick,
 }: CaregiverLayoutProps) {
   const navigate = useNavigate();
+  const addPatient = onAddPatientClick ?? onAddPatient;
 
   async function handleLogout() {
     try {
@@ -103,36 +109,33 @@ export function CaregiverLayout({
           ))}
         </nav>
 
-        {/* Active patient chip */}
-        {activePatient && (
-          <div className="mx-3 mb-3 px-3 py-2.5 bg-brand-softer border border-brand-soft rounded-card">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-brand-muted mb-0.5">
-              Active patient
-            </p>
-            <p className="text-sm font-bold text-brand-text truncate">{activePatient.name}</p>
-            <a
-              href={`/p/${activePatient.access_token}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-semibold text-brand hover:underline"
-            >
-              <HeartHandshake size={11} aria-hidden="true" />
-              Open patient view
-            </a>
+        {/* Patient switcher */}
+        <div className="mx-3 mb-3 rounded-card border border-surface-border bg-surface-raised p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <label htmlFor="sidebar-patient" className="text-[10px] font-bold uppercase tracking-wide text-ink-muted">Current patient</label>
+            {addPatient && <button type="button" onClick={addPatient} className="text-xs font-semibold text-brand hover:underline">Add</button>}
           </div>
-        )}
-
-        {/* Add patient CTA */}
-        {!activePatient && onAddPatient && (
-          <div className="mx-3 mb-3">
-            <button
-              onClick={onAddPatient}
-              className="w-full text-center py-2 px-3 bg-surface border border-dashed border-brand-soft text-brand rounded-card text-xs font-semibold hover:bg-brand-softer transition-colors duration-[150ms]"
+          {patients.length > 0 && onSelectPatient ? (
+            <select
+              id="sidebar-patient"
+              value={activePatient?.id ?? ''}
+              onChange={(event) => {
+                const selected = patients.find((item) => item.id === Number(event.target.value));
+                if (selected) onSelectPatient(selected);
+              }}
+              className="w-full rounded-btn border border-surface-border bg-surface px-3 py-2 text-sm font-semibold text-ink focus-visible:ring-2 focus-visible:ring-brand"
             >
-              + Add First Patient
-            </button>
-          </div>
-        )}
+              {patients.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
+          ) : activePatient ? (
+            <p className="truncate text-sm font-semibold text-ink">{activePatient.name}</p>
+          ) : (
+            <p className="text-xs text-ink-muted">No patient added</p>
+          )}
+          {!activePatient && addPatient && (
+            <button type="button" onClick={addPatient} className="mt-2 w-full rounded-btn border border-dashed border-brand-soft bg-surface px-3 py-2 text-xs font-semibold text-brand hover:bg-brand-softer">Add your first patient</button>
+          )}
+        </div>
 
         {/* User card + logout */}
         <div className="p-4 border-t border-surface-border flex items-center gap-2.5">
@@ -156,7 +159,8 @@ export function CaregiverLayout({
       <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden pb-16 md:pb-0">
 
         {/* Top bar */}
-        <header className="bg-surface border-b border-surface-border px-4 md:px-6 py-3.5 flex items-center justify-between sticky top-0 z-20">
+        <header className="sticky top-0 z-20 border-b border-surface-border bg-surface px-4 py-3.5 md:px-6">
+          <div className="flex items-center justify-between gap-3">
           {/* Mobile: logo */}
           <div className="flex items-center gap-2 md:hidden">
             <div className="w-7 h-7 rounded-btn bg-brand flex items-center justify-center">
@@ -191,6 +195,24 @@ export function CaregiverLayout({
             )}
             <Avatar name={user.name} size="sm" className="ring-2 ring-surface-border" />
           </div>
+          </div>
+          {patients.length > 0 && onSelectPatient && (
+            <div className="mt-3 flex items-center gap-2 md:hidden">
+              <label htmlFor="mobile-patient" className="sr-only">Choose patient</label>
+              <select
+                id="mobile-patient"
+                value={activePatient?.id ?? ''}
+                onChange={(event) => {
+                  const selected = patients.find((item) => item.id === Number(event.target.value));
+                  if (selected) onSelectPatient(selected);
+                }}
+                className="min-h-11 min-w-0 flex-1 rounded-btn border border-surface-border bg-surface-raised px-3 text-sm font-semibold text-ink"
+              >
+                {patients.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+              </select>
+              {addPatient && <button type="button" onClick={addPatient} className="min-h-11 rounded-btn border border-brand-soft px-3 text-sm font-semibold text-brand">Add patient</button>}
+            </div>
+          )}
         </header>
 
         {/* Content */}
