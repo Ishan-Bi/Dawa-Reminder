@@ -47,6 +47,7 @@
 - Visible frontend copy and branding are English-only per user preference; the caregiver patient form defaults the stored language to English.
 - Caregiver dashboard uses a mint and white visual system with live dose counts, today's schedule, next reminder, and daily progress; it does not invent analytics when no doses exist.
 - Patient view follows the supplied medication reminder references with a weekly date strip, doses grouped by time of day, large Taken/Skip actions, and optional read-aloud instructions.
+- Medication tracker uses a schedule board grouped by time of day, API-backed medication/prescription counts, search and status filters, and a responsive right-side add/edit form. Unknown routes have a styled recovery page.
 - Caregiver navigation exposes Dashboard, Patients, Medications, and Dose history; patient switching is available from desktop and mobile layouts. The responsive patient view uses large, clear dose actions. Medication editing updates the medication and its schedule through the existing API.
 - The frontend production build passes after the caregiver and patient UI integration. The UI uses live API data and avoids adding placeholder analytics or sample medication records.
 - Expired session records are removed when used; periodic session cleanup is not configured.

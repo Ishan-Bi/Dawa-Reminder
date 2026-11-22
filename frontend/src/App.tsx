@@ -15,7 +15,7 @@ import { PatientView } from '@/features/patient/PatientView';
 import { PwaInstallPrompt } from '@/components/PwaInstallPrompt';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Button } from '@/components/ui/Button';
-import { Activity, Shield, HeartHandshake, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Activity, Shield, HeartHandshake, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-react';
 
 interface HealthData {
   status: string;
@@ -164,6 +164,19 @@ function HomePage() {
         <p className="font-medium text-gray-600">This is a reminder tool, not medical advice.</p>
       </footer>
     </div>
+  );
+}
+
+function NotFoundPage() {
+  return (
+    <main className="grid min-h-screen place-items-center bg-surface-bg px-5 py-12">
+      <section className="w-full max-w-lg rounded-[2rem] border border-surface-border bg-white p-8 text-center shadow-card sm:p-12">
+        <span className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-brand-softer text-2xl font-extrabold text-brand-text">404</span>
+        <h1 className="mt-5 text-3xl font-bold text-ink">This page isn’t here</h1>
+        <p className="mt-2 text-ink-muted">The link may be out of date. Return to DawaReminder and choose a page from the menu.</p>
+        <Link to="/" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 py-2.5 font-semibold text-white transition hover:bg-brand-hover"><ArrowLeft size={17} /> Go to home</Link>
+      </section>
+    </main>
   );
 }
 
@@ -412,6 +425,7 @@ function CaregiverShell() {
           path="/history"
           element={<HistoryView patient={activePatient} />}
         />
+        <Route path="*" element={<Navigate to="/app" replace />} />
       </Routes>}
 
       {/* Modals */}
@@ -454,6 +468,7 @@ export default function App() {
         <Route path="/register" element={<AuthPage initialRegister />} />
         <Route path="/app/*" element={<CaregiverShell />} />
         <Route path="/p/:token" element={<PatientView />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );

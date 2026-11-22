@@ -14,6 +14,7 @@ interface ModalProps {
   title?:    string;
   children:  React.ReactNode;
   size?:     'sm' | 'md' | 'lg' | 'xl';
+  placement?: 'center' | 'right';
   className?: string;
   /** Legacy prop — maps to size; pass a Tailwind max-w-* class */
   maxWidth?: string;
@@ -32,6 +33,7 @@ export function Modal({
   title,
   children,
   size      = 'md',
+  placement = 'center',
   className,
   maxWidth,
 }: ModalProps) {
@@ -69,7 +71,10 @@ export function Modal({
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? 'modal-title' : undefined}
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+      className={cn(
+        'fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center',
+        placement === 'right' && 'items-stretch justify-end p-0 sm:p-0',
+      )}
     >
       {/* Backdrop */}
       <div
@@ -87,6 +92,8 @@ export function Modal({
           'flex flex-col max-h-[90vh] overflow-hidden',
           'outline-none',
           maxWidth ?? sizeClasses[size],
+          placement === 'right' && 'h-full max-h-full max-w-none rounded-none sm:max-w-xl sm:rounded-l-[2rem]',
+          placement === 'right' && 'modal-panel-right',
           className,
         )}
       >

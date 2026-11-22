@@ -146,7 +146,7 @@ export function AddMedicationModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={medication ? `Edit ${medication.name}` : 'Add medication'} maxWidth="max-w-xl">
+    <Modal isOpen={isOpen} onClose={onClose} title={medication ? `Edit ${medication.name}` : 'Add medication'} maxWidth="max-w-xl" placement="right">
       <form onSubmit={handleSubmit} className="space-y-5">
         {error && (
           <p className="p-3 bg-red-50 text-red-700 text-xs rounded-xl border border-red-200">
